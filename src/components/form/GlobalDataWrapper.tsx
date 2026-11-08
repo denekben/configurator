@@ -39,7 +39,7 @@ export function GlobalDataWrapper({ children, defaultEditable }: Props) {
 
       <Box sx={{ position: 'relative', zIndex: 1 }}>
         {!controlled && (
-          <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 1 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 1, pl: 2 }}>
             <FormControlLabel
               labelPlacement="end"
               control={
