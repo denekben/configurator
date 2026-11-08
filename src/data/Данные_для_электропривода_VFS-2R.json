@@ -1,0 +1,34 @@
+{
+  "sheet_name": "Данные для электропривода VFS-2R",
+  "sheet_index_num": 13,
+  "manual_mode": {
+    "header": ["Привод для РК", "Ду", "Напряжение", "Тип", "SU|SD", "Присоединение", "Материал", "КОД"],
+    "rows": []
+  },
+  "automatic_mode": {
+    "header": ["Наименование", "Ду", "Напряжение", "Тип", "SU|SD", "Присоединение", "Материал", "КОД"],
+    "rows": [
+      {"name": "AMV-1800R", "dn": 80, "voltage": 220, "type": "импульсное", "su_sd": "Без пружины", "connection": null, "material": null, "code": "082G3443R1"},
+      {"name": "AMV-1800R", "dn": 80, "voltage": 24, "type": "импульсное", "su_sd": "Без пружины", "connection": null, "material": null, "code": "082G3442R1"},
+      {"name": "AME-1800R", "dn": 80, "voltage": 220, "type": "аналоговое", "su_sd": "Без пружины", "connection": null, "material": null, "code": "082G3443R2"},
+      {"name": "AME-1800R", "dn": 80, "voltage": 24, "type": "аналоговое", "su_sd": "Без пружины", "connection": null, "material": null, "code": "082G3442R2"},
+      {"name": "AMV-2000R SU/SD", "dn": 80, "voltage": 24, "type": "импульсное", "su_sd": "С пружиной", "connection": null, "material": null, "code": "082G3448R"},
+      {"name": "AMV-2000R SU/SD", "dn": 80, "voltage": 220, "type": "импульсное", "su_sd": "С пружиной", "connection": null, "material": null, "code": "082G3449R"},
+      {"name": "AME-2000R SU/SD", "dn": 80, "voltage": 24, "type": "аналоговое", "su_sd": "С пружиной", "connection": null, "material": null, "code": "082G3450R"},
+      {"name": "AME-2000R SU/SD", "dn": 80, "voltage": 220, "type": "аналоговое", "su_sd": "С пружиной", "connection": null, "material": null, "code": "082G3451R"},
+      {"name": "AMV-3000R", "dn": 200, "voltage": 220, "type": "импульсное", "su_sd": "Без пружины", "connection": null, "material": null, "code": "082G3443R3"},
+      {"name": "AMV-3000R", "dn": 200, "voltage": 24, "type": "импульсное", "su_sd": "Без пружины", "connection": null, "material": null, "code": "082G3442R3"},
+      {"name": "AME-3000R", "dn": 200, "voltage": 220, "type": "аналоговое", "su_sd": "Без пружины", "connection": null, "material": null, "code": "082G3443R4"},
+      {"name": "AME-3000R", "dn": 200, "voltage": 24, "type": "аналоговое", "su_sd": "Без пружины", "connection": null, "material": null, "code": "082G3442R4"},
+      {"name": "AMV-3000R SU/SD", "dn": 200, "voltage": 220, "type": "импульсное", "su_sd": "С пружиной", "connection": null, "material": null, "code": "082G3453R"},
+      {"name": "AME-3000R SU/SD", "dn": 200, "voltage": 24, "type": "аналоговое", "su_sd": "С пружиной", "connection": null, "material": null, "code": "082G3452R"}
+    ]
+  },
+  "selection_result": {
+    "criterion": 4,
+    "dn": 80,
+    "voltage": 220,
+    "type": 0,
+    "su_sd": 0
+  }
+}
