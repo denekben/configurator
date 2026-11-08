@@ -1,7 +1,7 @@
 // src/components/form/tabs/ChoicePtoTab.tsx
 
 import { useFormContext, useWatch } from 'react-hook-form';
-import { Box, Typography, Divider } from '@mui/material';
+import { Box } from '@mui/material';
 import { SectionCard } from '../../controls/SectionCard';
 import { TextControl } from '../../controls/TextControl';
 import { SelectControl } from '../../controls/SelectControl';

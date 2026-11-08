@@ -1,5 +1,6 @@
 // src/components/form/InputForm.tsx
 
+import type { ReactElement } from 'react';
 import {
   Fragment,
   forwardRef,
@@ -56,7 +57,7 @@ export interface InputFormHandle {
   getValues: () => InputData;
 }
 
-type NavItem = { key: string; label: string; element: JSX.Element };
+type NavItem = { key: string; label: string; element: ReactElement };
 type NavGroup = { title: string; items: NavItem[] };
 
 const NAV_GROUPS: NavGroup[] = [
@@ -97,10 +98,6 @@ const NAV_GROUPS: NavGroup[] = [
 
 const ALL_ITEMS = NAV_GROUPS.flatMap(g => g.items);
 
-/**
- * «Глобальные» пути — те, что физически принадлежат GlobalDataTab
- * и защищены чекбоксом «Редактировать».
- */
 const GLOBAL_PATHS = new Set<string>([
   'steamFlow.steamTempC',
   'steamFlow.steamPressureBar',
@@ -119,16 +116,11 @@ const GLOBAL_PATHS = new Set<string>([
   'system.designPressureBar',
 ]);
 
-/**
- * Пути, защищённые собственным чекбоксом «Редактировать Ду».
- * Если соответствующий флаг не `true` — путь не сбрасываем.
- */
 const DU_GUARDED_PATHS: Record<string, string> = {
   'secondaryCircuit.secondaryStandardDu': 'secondaryCircuit.editStandardDu',
   'makeUp.makeupStandardDu': 'makeUp.editStandardDu',
 };
 
-/** Вкладки, у которых есть GlobalDataWrapper. */
 const TABS_WITH_GLOBAL_BLOCK = new Set<string>([
   'steam-pipe',
   'trap',
@@ -141,11 +133,6 @@ const TABS_WITH_GLOBAL_BLOCK = new Set<string>([
   'arm-makeup',
 ]);
 
-/**
- * Пути-флаги, которые НЕЛЬЗЯ сбрасывать никогда:
- *  - *.mode (ручной/авто)
- *  - *.editStandardDu (разрешение редактировать Ду)
- */
 const NEVER_RESET_PATHS = new Set<string>([
   'secondaryCircuit.editStandardDu',
   'makeUp.editStandardDu',
@@ -157,8 +144,6 @@ export const InputForm = forwardRef<InputFormHandle, Props>(
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [activeKey, setActiveKey] = useState<string>(ALL_ITEMS[0].key);
-
-    /** Состояние чекбокса «Редактировать» по вкладкам. */
     const [editableByTab, setEditableByTab] = useState<Record<string, boolean>>({});
 
     const methods = useForm<InputData>({
@@ -167,17 +152,15 @@ export const InputForm = forwardRef<InputFormHandle, Props>(
     });
 
     const {
-      handleSubmit,
       formState: { errors, isSubmitted, touchedFields },
       setValue,
       clearErrors,
-      setTouched,
       trigger,
       getValues,
       control,
     } = methods;
 
-    // Отдаём наружу актуальные значения формы для «Сгенерировать документацию».
+    // Отдаём наружу актуальные значения формы.
     useImperativeHandle(
       ref,
       () => ({
@@ -186,7 +169,6 @@ export const InputForm = forwardRef<InputFormHandle, Props>(
       [getValues],
     );
 
-    // Подписка на флаги «Редактировать Ду», чтобы disabled корректно реагировал.
     const editStandardDuSecondary = useWatch({
       control,
       name: 'secondaryCircuit.editStandardDu',
@@ -208,7 +190,6 @@ export const InputForm = forwardRef<InputFormHandle, Props>(
     );
     const showErrorSummary = (isSubmitted || hasTouched) && errorCount > 0;
 
-    // --- Навигация стрелками по пунктам сайдбара ---
     const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
 
     const activeIndex = useMemo(
@@ -251,37 +232,28 @@ export const InputForm = forwardRef<InputFormHandle, Props>(
       }
     };
 
-    const onSubmit = (data: InputData) => {
-      const result = calculate(data);
-      onCalculated(data, result);
-    };
+    // onSubmit не нужен: расчёт вызывается через onCalculated снаружи,
+    // а актуальные значения отдаются через ref.getValues().
+    void calculate;
+    void onCalculated;
 
     const handleSelect = (key: string) => {
       setActiveKey(key);
       if (isMobile) setDrawerOpen(false);
     };
 
-    /**
-     * Вычисляет реальные пути для сброса на активной вкладке с учётом:
-     *  - не сбрасываем *.mode и *.editStandardDu;
-     *  - защита глобальных полей (editableByTab);
-     *  - защита Ду по флагу «Редактировать Ду».
-     */
     const computeResetPaths = (): string[] => {
       const all = TAB_FIELDS[activeKey] ?? [];
       const hasGlobalBlock = TABS_WITH_GLOBAL_BLOCK.has(activeKey);
       const editable = editableByTab[activeKey] ?? false;
 
       return all.filter((p) => {
-        // не сбрасываем управляющие флаги
         if (p.endsWith('.mode')) return false;
         if (p.endsWith('.editStandardDu')) return false;
         if (NEVER_RESET_PATHS.has(p)) return false;
 
-        // защита глобальных полей
         if (hasGlobalBlock && !editable && GLOBAL_PATHS.has(p)) return false;
 
-        // защита Ду по чекбоксу «Редактировать Ду»
         const guardField = DU_GUARDED_PATHS[p];
         if (guardField) {
           const guardValue = getValues(guardField as never) as unknown;
@@ -292,17 +264,12 @@ export const InputForm = forwardRef<InputFormHandle, Props>(
       });
     };
 
-    // Для disabled кнопки — пересчитываем при изменении активной вкладки,
-    // editableByTab и флагов «Редактировать Ду».
     const resetPathsForDisabled = useMemo(
       () => computeResetPaths(),
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [activeKey, editableByTab, editStandardDuSecondary, editStandardDuMakeUp],
     );
 
-    /**
-     * Локальный сброс: только поля активной вкладки (без режима и без флагов).
-     */
     const handleReset = () => {
       const paths = computeResetPaths();
       if (paths.length === 0) return;
@@ -317,15 +284,9 @@ export const InputForm = forwardRef<InputFormHandle, Props>(
         clearErrors(path as never);
       });
 
-      setTouched(
-        Object.fromEntries(paths.map((p) => [p, true])) as never,
-        false,
-      );
-
       trigger(paths as never, { shouldFocus: false });
     };
 
-    /** Контекст редактирования для активной вкладки. */
     const globalEditValue = useMemo(
       () => ({
         editable: editableByTab[activeKey] ?? false,
@@ -440,7 +401,6 @@ export const InputForm = forwardRef<InputFormHandle, Props>(
   },
 );
 
-/** Считает количество «листовых» ошибок (полей), а не веток. */
 function countLeafErrors(obj: unknown): number {
   if (obj == null || typeof obj !== 'object') return 0;
   let count = 0;

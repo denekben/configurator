@@ -55,7 +55,8 @@ export interface ValveCodeSelection {
  * В JSON у VFS-2R встречаются строки вида "15 (0,63)".
  * Приводим запятую к точке, убираем лишние пробелы.
  */
-function normalizeDn(dn: string | number): string {
+function normalizeDn(dn: string | number | null | undefined): string {
+  if (dn === null || dn === undefined) return '';
   return String(dn).trim().replace(/\s+/g, ' ').replace(/,/g, '.');
 }
 
@@ -63,7 +64,9 @@ function normalizeDn(dn: string | number): string {
  * Приводит Ду вида '15' или '15 (0,63)' к числу.
  * Возвращает 0, если распарсить не удалось.
  */
-function parseDnToNumber(dn: number | string | undefined): number {
+function parseDnToNumber(
+  dn: number | string | null | undefined,
+): number {
   if (dn === undefined || dn === null) return 0;
   if (typeof dn === 'number') return dn;
   const m = String(dn).match(/\d+(?:[.,]\d+)?/);
@@ -73,8 +76,12 @@ function parseDnToNumber(dn: number | string | undefined): number {
 // ---------------------------------------------------------------------------
 // Клапаны: Kvs по типу и Ду
 // ---------------------------------------------------------------------------
-export function getValveKvs(valveType: string, dn: string | number): number {
+export function getValveKvs(
+  valveType: string | null | undefined,
+  dn: string | number | null | undefined,
+): number {
   const dnStr = normalizeDn(dn);
+  if (dnStr === '') return 0;
 
   let rows: ValveComponent[] = [];
 
@@ -144,28 +151,33 @@ export function calcValveDeltaP(flowKgH: number, kv: number, p1Bar: number): num
  * @returns ActuatorSelection | null
  */
 export function selectActuatorByParams(
-  dn: number | string,
-  voltage: number | string,
-  controlType: 'impulse' | 'analog' | string,
-  suSd: 'no_spring' | 'spring' | string,
+  dn: number | string | null | undefined,
+  voltage: number | string | null | undefined,
+  controlType: 'impulse' | 'analog' | string | null | undefined,
+  suSd: 'no_spring' | 'spring' | string | null | undefined,
 ): ActuatorSelection | null {
   const dnNum = parseDnToNumber(dn);
   if (!dnNum) return null;
 
+  const wantedVoltage = Number(voltage);
+  if (!Number.isFinite(wantedVoltage) || wantedVoltage <= 0) return null;
+
   // Групповой Ду: <=80 → 80, иначе 200
   const wantedDn = dnNum <= 80 ? '80' : '200';
-
-  const wantedVoltage = Number(voltage);
 
   const wantedType =
     controlType === 'impulse' ? 'импульсное'
     : controlType === 'analog' ? 'аналоговое'
-    : controlType;
+    : controlType ?? '';
+
+  if (!wantedType) return null;
 
   const wantedSuSd =
     suSd === 'no_spring' ? 'Без пружины'
     : suSd === 'spring' ? 'С пружиной'
-    : suSd;
+    : suSd ?? '';
+
+  if (!wantedSuSd) return null;
 
   const rows: ActuatorRow[] = actuatorData.automatic_mode.rows;
 
@@ -200,10 +212,11 @@ export function selectActuatorByParams(
  * @returns ValveCodeSelection | null
  */
 export function selectValveCode(
-  valveType: string,
-  dn: number | string,
+  valveType: string | null | undefined,
+  dn: number | string | null | undefined,
 ): ValveCodeSelection | null {
   const dnStr = normalizeDn(dn);
+  if (dnStr === '') return null;
 
   let rows: ValveComponent[] = [];
 

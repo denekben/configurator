@@ -40,9 +40,11 @@ const theme = createTheme({
     },
     MuiButton: {
       styleOverrides: {
-        containedPrimary: {
-          backgroundColor: '#8B0000',
-          '&:hover': { backgroundColor: '#a00000' },
+        contained: {
+          '&.MuiButton-containedPrimary': {
+            backgroundColor: '#8B0000',
+            '&:hover': { backgroundColor: '#a00000' },
+          },
         },
       },
     },

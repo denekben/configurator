@@ -125,7 +125,10 @@ export function MakeUpTab() {
       return;
     }
 
-    setValue('results.makeupVolumeCoef', volumeCoef ?? undefined);
+    setValue(
+      'results.makeupVolumeCoef',
+      volumeCoef != null ? String(volumeCoef) : undefined,
+    );
     setValue('results.makeupFlowM3h', flow);
     setValue('results.makeupPreliminarySpeed', preliminarySpeed ?? undefined);
     setValue('results.makeupEstimatedDuMm', estimatedDu);

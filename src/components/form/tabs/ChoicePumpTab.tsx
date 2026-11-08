@@ -2,7 +2,13 @@
 
 import { useMemo } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
-import { Autocomplete, Box, TextField, Typography, Divider, FormHelperText } from '@mui/material';
+import {
+  Autocomplete,
+  Box,
+  TextField,
+  Typography,
+  FormHelperText,
+} from '@mui/material';
 import { SectionCard } from '../../controls/SectionCard';
 import { TextControl } from '../../controls/TextControl';
 import type { InputData } from '../../../core/types';
@@ -36,7 +42,7 @@ export function ChoicePumpTab() {
   const headMInput = useWatch({ control, name: 'choicePump.headM' });
   const flowM3hInput = useWatch({ control, name: 'choicePump.flowM3h' });
 
-  // Опции для автокомплитов (мемоизируем, чтобы не дёргать поиск на каждый рендер)
+  // Опции для автокомплитов
   const nameOptions = useMemo(() => searchPumpsByName(pumpName), [pumpName]);
   const codeOptions = useMemo(() => searchPumpsByCode(pumpCode), [pumpCode]);
 
@@ -46,20 +52,14 @@ export function ChoicePumpTab() {
   const headMEmpty = toNumberOrNull(headMInput) === null;
   const flowM3hEmpty = toNumberOrNull(flowM3hInput) === null;
 
-  // Проверка согласованности «код ↔ название».
-  // Сверяем по каталогу: если по коду находится насос — его model должен совпадать с pumpName,
-  // и наоборот. Оба поля должны быть заполнены, иначе проверку не запускаем
-  // (для пустых работает REQUIRED_MSG).
+  // Проверка согласованности «код ↔ название»
   const codeMatchesName = useMemo(() => {
-    if (nameEmpty || codeEmpty) return true; // не дублируем REQUIRED
+    if (nameEmpty || codeEmpty) return true;
 
     const byCode = findPumpByCode(pumpCode);
     const byName = findPumpByName(pumpName);
 
-    // Если хотя бы одна сторона не найдена в каталоге — считаем несоответствием:
-    // пользователь ввёл что-то свободным текстом, а не выбрал из списка.
     if (!byCode || !byName) return false;
-
     return byCode.code === byName.code;
   }, [pumpName, pumpCode, nameEmpty, codeEmpty]);
 
@@ -68,16 +68,23 @@ export function ChoicePumpTab() {
   const nameError = nameEmpty || mismatch;
   const codeError = codeEmpty || mismatch;
 
-  // При выборе из списка — синхронизируем второе поле
-  const handleSelectByName = (_e: unknown, value: PumpCatalogItem | null) => {
-    if (value) {
+  // При выборе из списка — синхронизируем второе поле.
+  // Сигнатура совместима с freeSolo: value может быть string.
+  const handleSelectByName = (
+    _e: unknown,
+    value: PumpCatalogItem | string | null,
+  ) => {
+    if (value && typeof value !== 'string') {
       setValue('choicePump.pumpName', value.model, { shouldDirty: true });
       setValue('choicePump.pumpCode', value.code, { shouldDirty: true });
     }
   };
 
-  const handleSelectByCode = (_e: unknown, value: PumpCatalogItem | null) => {
-    if (value) {
+  const handleSelectByCode = (
+    _e: unknown,
+    value: PumpCatalogItem | string | null,
+  ) => {
+    if (value && typeof value !== 'string') {
       setValue('choicePump.pumpCode', value.code, { shouldDirty: true });
       setValue('choicePump.pumpName', value.model, { shouldDirty: true });
     }
@@ -94,12 +101,18 @@ export function ChoicePumpTab() {
             <Autocomplete
               freeSolo
               options={nameOptions}
-              getOptionLabel={(opt) => typeof opt === 'string' ? opt : opt.model}
-              isOptionEqualToValue={(opt, val) =>
-                typeof opt === 'string' ? opt === val : opt.model === val.model
+              getOptionLabel={(opt) =>
+                typeof opt === 'string' ? opt : opt.model
               }
+              isOptionEqualToValue={(opt, val) => {
+                if (typeof opt === 'string' || typeof val === 'string') {
+                  return opt === val;
+                }
+                return opt.model === val.model;
+              }}
               value={
-                nameOptions.find(o => o.model === field.value) ?? (field.value || null)
+                nameOptions.find(o => o.model === field.value) ??
+                (field.value || null)
               }
               inputValue={field.value ?? ''}
               onInputChange={(_e, val) => field.onChange(val)}
@@ -128,7 +141,9 @@ export function ChoicePumpTab() {
                     <Box>
                       <Typography variant="body2">{item.model}</Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {item.code}{item.powerW ? ` · ${item.powerW} Вт` : ''}{item.connection ? ` · ${item.connection}` : ''}
+                        {item.code}
+                        {item.powerW ? ` · ${item.powerW} Вт` : ''}
+                        {item.connection ? ` · ${item.connection}` : ''}
                       </Typography>
                     </Box>
                   </li>
@@ -148,12 +163,18 @@ export function ChoicePumpTab() {
             <Autocomplete
               freeSolo
               options={codeOptions}
-              getOptionLabel={(opt) => typeof opt === 'string' ? opt : opt.code}
-              isOptionEqualToValue={(opt, val) =>
-                typeof opt === 'string' ? opt === val : opt.code === val.code
+              getOptionLabel={(opt) =>
+                typeof opt === 'string' ? opt : opt.code
               }
+              isOptionEqualToValue={(opt, val) => {
+                if (typeof opt === 'string' || typeof val === 'string') {
+                  return opt === val;
+                }
+                return opt.code === val.code;
+              }}
               value={
-                codeOptions.find(o => o.code === field.value) ?? (field.value || null)
+                codeOptions.find(o => o.code === field.value) ??
+                (field.value || null)
               }
               inputValue={field.value ?? ''}
               onInputChange={(_e, val) => field.onChange(val)}
@@ -182,7 +203,8 @@ export function ChoicePumpTab() {
                     <Box>
                       <Typography variant="body2">{item.code}</Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {item.model}{item.powerW ? ` · ${item.powerW} Вт` : ''}
+                        {item.model}
+                        {item.powerW ? ` · ${item.powerW} Вт` : ''}
                       </Typography>
                     </Box>
                   </li>
@@ -213,8 +235,6 @@ export function ChoicePumpTab() {
         />
       </SectionCard>
 
-      {/* Сводный алерт несоответствия — на случай, если helperText под полем
-          обрезается длинным текстом, плюс чтобы привлечь внимание */}
       {mismatch && (
         <FormHelperText error sx={{ mx: 1.75, mt: 1 }}>
           {MISMATCH_MSG}

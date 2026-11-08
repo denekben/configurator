@@ -335,7 +335,7 @@ export function SteamPipeTab() {
                   id="standard-du-select"
                   value={selectedStandardDuNum ?? ''}
                   label="Выберите стандартный Ду (мм)"
-                  onChange={(e) => handleStandardDuChange(e.target.value as string)}
+                  onChange={(e) => handleStandardDuChange(String(e.target.value))}
                 >
                   {STANDARD_DIAMETERS.map(du => (
                     <MenuItem key={du} value={du}>{du}</MenuItem>

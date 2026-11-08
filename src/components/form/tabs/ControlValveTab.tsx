@@ -25,7 +25,7 @@ const REQUIRED_MSG = 'Обязательное поле';
 const NEGATIVE_MSG = 'Значение не может быть отрицательным';
 const MODE_REQUIRED_MSG = 'Выберите режим подбора';
 
-function parseValveDu(du: number | string | undefined): number {
+function parseValveDu(du: number | string | null | undefined): number {
   if (du === undefined || du === null) return 0;
   if (typeof du === 'number') return du;
   const m = String(du).match(/\d+(?:[.,]\d+)?/);
@@ -74,7 +74,7 @@ export function ControlValveTab() {
   const steamPressureNum = toNumberOrNull(steamPressureInput);
   const dpAssumedNum = toNumberOrNull(dpAssumedInput);
 
-  const valveDuNum = parseValveDu(valveDu);
+  const valveDuNum = parseValveDu(valveDu ?? undefined);
   const isKm225fAllowed = valveDuNum >= KM225F_MIN_DU;
 
   // 2. Валидация обязательности
@@ -169,7 +169,7 @@ export function ControlValveTab() {
 
   const kvRequired = canCalc && steamFlow && p1 > 0 ? calcKv(steamFlow, p1, dp) : 0;
 
-  const kvsActual = getValveKvs(valveType, valveDu);
+  const kvsActual = getValveKvs(valveType, valveDu ?? undefined);
 
   const actualDeltaP =
     canCalc && steamFlow && kvsActual && p1 > 0
@@ -181,7 +181,7 @@ export function ControlValveTab() {
   // 6. Подбор
   const vfsActuator = isVfs2r
     ? selectActuatorByParams(
-        valveDu,
+        valveDu ?? undefined,
         actuatorVoltageInput,
         actuatorControlInput,
         actuatorSuSdInput,
@@ -189,7 +189,7 @@ export function ControlValveTab() {
     : null;
 
   const otherValveCode = !isVfs2r
-    ? selectValveCode(valveType, valveDu)
+    ? selectValveCode(valveType, valveDu ?? undefined)
     : null;
 
   const nothingFound = isVfs2r
@@ -242,7 +242,7 @@ export function ControlValveTab() {
     setValue('results.valveOverloaded', valveOverloaded);
 
     setValue('results.valveType', valveType);
-    setValue('results.valveDu', valveDu);
+    setValue('results.valveDu', valveDu ?? undefined);
 
     setValue('results.actuatorName', vfsActuator?.name ?? otherValveCode?.name ?? '');
     setValue('results.actuatorCode', vfsActuator?.code ?? otherValveCode?.code ?? '');
@@ -442,7 +442,7 @@ export function ControlValveTab() {
 
                 <ResultRow label="Расход пара" value={steamFlow.toFixed(2)} unit="кг/ч" latexFormulaWithNumbers={flowFormula} />
                 <ResultRow label="Давление после клапана" value={p2.toFixed(2)} unit="бар" latexFormulaWithNumbers={`P_2 = ${p1} - ${dp} = ${p2.toFixed(2)}`} />
-                <ResultRow label="Коэффициент x (ΔP / P1)" value={x.toFixed(4)} latexFormulaWithNumbers={`x = \\frac{${dp}}{${p1}} = ${x.toFixed(4)}`} />
+                <ResultRow label="Коэффициент x (ΔP / P1)" value={x.toFixed(4)} unit="" latexFormulaWithNumbers={`x = \\frac{${dp}}{${p1}} = ${x.toFixed(4)}`} />
                 <ResultRow label="Расчетная пропускная способность Kv" value={kvRequired.toFixed(4)} unit="м³/ч" latexFormulaWithNumbers={kvFormula} />
 
                 {kvsActual >= 0 && (

@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Box, FormControlLabel, Checkbox, Typography } from '@mui/material';
 import { useGlobalEdit } from './GlobalEditContext';
 

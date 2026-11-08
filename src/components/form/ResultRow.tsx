@@ -18,7 +18,7 @@ import InfoIcon from '@mui/icons-material/Info';
 interface Props {
   label: string;
   value: string;
-  unit: string;
+  unit?: string;
   latexFormulaWithNumbers?: string;
   /** Подсветить строку как ошибку (красным). */
   highlightError?: boolean;
@@ -37,8 +37,10 @@ export function ResultRow({
     <Box sx={{ mb: 2 }}>
       <Typography
         variant="caption"
-        display="block"
-        sx={{ color: highlightError ? 'error.main' : 'text.secondary' }}
+        sx={{
+          display: 'block',
+          color: highlightError ? 'error.main' : 'text.secondary',
+        }}
       >
         {label}
       </Typography>
@@ -46,10 +48,12 @@ export function ResultRow({
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Typography
           variant="h6"
-          fontWeight="normal"
-          sx={{ color: highlightError ? 'error.main' : undefined }}
+          sx={{
+            fontWeight: 'normal',
+            color: highlightError ? 'error.main' : undefined,
+          }}
         >
-          {value} <small>{unit}</small>
+          {value} <small>{unit ?? ''}</small>
         </Typography>
 
         {latexFormulaWithNumbers && (

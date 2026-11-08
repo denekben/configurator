@@ -334,12 +334,10 @@ export function CondensateTrapTab() {
                     <Select
                       value={selectedDu ?? ''}
                       label="Ду конденсатоотводчика (мм)"
-                      onChange={(e) =>
-                        setValue(
-                          'results.trapDu',
-                          e.target.value === '' ? undefined : Number(e.target.value),
-                        )
-                      }
+                      onChange={(e) => {
+                        const v = String(e.target.value);
+                        setValue('results.trapDu', v === '' ? undefined : Number(v));
+                      }}
                     >
                       {TRAP_DUS.map((du) => (
                         <MenuItem key={du} value={du}>
@@ -357,12 +355,10 @@ export function CondensateTrapTab() {
                     <Select
                       value={selectedDeltaP ?? ''}
                       label="Расчетный перепад (бар)"
-                      onChange={(e) =>
-                        setValue(
-                          'results.trapDesignDeltaP',
-                          e.target.value === '' ? undefined : Number(e.target.value),
-                        )
-                      }
+                      onChange={(e) => {
+                        const v = String(e.target.value);
+                        setValue('results.trapDesignDeltaP', v === '' ? undefined : Number(v));
+                      }}
                     >
                       {DELTA_P_OPTIONS.map((dp) => (
                         <MenuItem key={dp} value={dp}>
@@ -415,12 +411,10 @@ export function CondensateTrapTab() {
                     <Select
                       value={selectedTrapType ?? ''}
                       label="Выберите перепад конденсатоотводчика (бар)"
-                      onChange={(e) =>
-                        setValue(
-                          'results.trapTypeDeltaP',
-                          e.target.value === '' ? undefined : Number(e.target.value),
-                        )
-                      }
+                      onChange={(e) => {
+                        const v = String(e.target.value);
+                        setValue('results.trapTypeDeltaP', v === '' ? undefined : Number(v));
+                      }}
                     >
                       {TRAP_TYPES.map((dp) => (
                         <MenuItem key={dp} value={dp}>
