@@ -70,10 +70,7 @@ export function DesignTab() {
         <TextControl name="design.taskAuthor" label="Автор задачи в ЦРМ" control={control} />
         <TextControl name="design.taskAuthorPhone" label="Номер автора задачи" control={control} />
         <TextControl name="design.calcNumber" label="Номер расчёта" control={control} />
-      </SectionCard>
-
-      {/* === Принципиальная схема === */}
-      <SectionCard title="Принципиальная схема">
+        {/* === Принципиальная схема === */}
         <Controller
           name="design.schemeKind"
           control={control}
@@ -178,6 +175,8 @@ export function DesignTab() {
           }}
         />
       </SectionCard>
+
+      
 
       {/* Диалог предпросмотра схемы */}
       <Dialog

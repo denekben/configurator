@@ -113,22 +113,22 @@ export function SecondaryCircuitTab() {
     ? calcSecondaryActualSpeed(flow, standardDuNum)
     : 0;
 
-  // Сохранение результатов.
+  // Сохранение результатов (вложенные пути results.secondaryCircuit.*).
   useEffect(() => {
     if (!canCalc) {
-      setValue('results.secondaryFlowM3h', undefined);
-      setValue('results.secondaryPreliminarySpeed', undefined);
-      setValue('results.secondaryEstimatedDuMm', undefined);
-      setValue('results.secondaryStandardDuMm', undefined);
-      setValue('results.secondaryActualSpeedMs', undefined);
+      setValue('results.secondaryCircuit.secondaryFlowM3h', undefined);
+      setValue('results.secondaryCircuit.secondaryPreliminarySpeed', undefined);
+      setValue('results.secondaryCircuit.secondaryEstimatedDuMm', undefined);
+      setValue('results.secondaryCircuit.secondaryStandardDuMm', undefined);
+      setValue('results.secondaryCircuit.secondaryActualSpeedMs', undefined);
       return;
     }
 
-    setValue('results.secondaryFlowM3h', flow);
-    setValue('results.secondaryPreliminarySpeed', preliminarySpeed ?? undefined);
-    setValue('results.secondaryEstimatedDuMm', estimatedDu);
-    setValue('results.secondaryStandardDuMm', standardDuNum ?? undefined);
-    setValue('results.secondaryActualSpeedMs', actualSpeed);
+    setValue('results.secondaryCircuit.secondaryFlowM3h', flow);
+    setValue('results.secondaryCircuit.secondaryPreliminarySpeed', preliminarySpeed ?? undefined);
+    setValue('results.secondaryCircuit.secondaryEstimatedDuMm', estimatedDu);
+    setValue('results.secondaryCircuit.secondaryStandardDuMm', standardDuNum ?? undefined);
+    setValue('results.secondaryCircuit.secondaryActualSpeedMs', actualSpeed);
   }, [canCalc, flow, preliminarySpeed, estimatedDu, standardDuNum, actualSpeed, setValue]);
 
   // LaTeX
@@ -207,7 +207,6 @@ export function SecondaryCircuitTab() {
               helperText={buildHelper(preliminarySpeedEmpty, preliminarySpeedNegative)}
             />
 
-            {/* Галочка «Редактировать Ду» — структура как в MakeUpTab */}
             <Controller
               name="secondaryCircuit.editStandardDu"
               control={control}
@@ -232,7 +231,6 @@ export function SecondaryCircuitTab() {
               )}
             />
 
-            {/* Ду блокируется, пока не поставлена галочка «Редактировать Ду» */}
             <Controller
               name="secondaryCircuit.secondaryStandardDu"
               control={control}

@@ -13,7 +13,7 @@ export function SchemeTab() {
     <Box>
       <SectionCard title="Первичный контур">
         <SelectControl
-          name="scheme.hasSeparator"
+          name="scheme.primary.hasSeparator"
           label="Наличие сепаратора"
           control={control}
           options={[
@@ -22,7 +22,7 @@ export function SchemeTab() {
           ]}
         />
         <SelectControl
-          name="scheme.hasAccountingPrimary"
+          name="scheme.primary.hasAccountingPrimary"
           label="Наличие учёта"
           control={control}
           options={[
@@ -32,7 +32,7 @@ export function SchemeTab() {
           ]}
         />
         <SelectControl
-          name="scheme.trapReserve"
+          name="scheme.primary.trapReserve"
           label="Резерв конденсатоотводчиков"
           control={control}
           options={[
@@ -46,7 +46,7 @@ export function SchemeTab() {
 
       <SectionCard title="Вторичный контур">
         <SelectControl
-          name="scheme.hxReserve"
+          name="scheme.secondary.hxReserve"
           label="Резерв ПТО"
           control={control}
           options={[
@@ -57,7 +57,7 @@ export function SchemeTab() {
           ]}
         />
         <SelectControl
-          name="scheme.pumpReserve"
+          name="scheme.secondary.pumpReserve"
           label="Резерв насосов"
           control={control}
           options={[
@@ -67,7 +67,7 @@ export function SchemeTab() {
           ]}
         />
         <SelectControl
-          name="scheme.hasAccountingSecondary"
+          name="scheme.secondary.hasAccountingSecondary"
           label="Наличие учёта"
           control={control}
           options={[
@@ -80,7 +80,7 @@ export function SchemeTab() {
 
       <SectionCard title="Линия подпитки">
         <SelectControl
-          name="scheme.makeupConfig"
+          name="scheme.makeup.makeupConfig"
           label="Конфигурация подпитки"
           control={control}
           options={[
@@ -95,7 +95,7 @@ export function SchemeTab() {
           ]}
         />
         <SelectControl
-          name="scheme.hasExpansionTank"
+          name="scheme.makeup.hasExpansionTank"
           label="Наличие РБ"
           control={control}
           options={[
@@ -104,7 +104,7 @@ export function SchemeTab() {
           ]}
         />
         <SelectControl
-          name="scheme.aupdConfig"
+          name="scheme.makeup.aupdConfig"
           label="Наличие АУПД / АУПДз"
           control={control}
           options={[

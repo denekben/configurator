@@ -33,7 +33,6 @@ import {
   STANDARD_DIAMETERS,
 } from '../../../core/calc/steamPipeTabCalc';
 
-/** Безопасно приводит значение из формы к числу. Пустое / невалидное → null. */
 function toNumberOrNull(v: unknown): number | null {
   if (v === undefined || v === null || v === '') return null;
   const n = typeof v === 'number' ? v : Number(v);
@@ -47,7 +46,6 @@ const MODE_REQUIRED_MSG = 'Выберите режим подбора';
 export function SteamPipeTab() {
   const { control, setValue } = useFormContext<InputData>();
 
-  // 1. Входные данные
   const tabModeRaw = useWatch({ control, name: 'steamPipe.mode' });
   const tabMode = tabModeRaw ?? '';
   const modeEmpty = tabMode === '';
@@ -60,9 +58,12 @@ export function SteamPipeTab() {
   const specificVolumeInput = useWatch({ control, name: 'steamThermo.specificVolumeSteam' });
   const speedMsInput = useWatch({ control, name: 'steamPipe.steamSpeedMs' });
 
-  const selectedStandardDu = useWatch({ control, name: 'results.standardDiameterMm' });
+  // nested path — matches CalcResult.steamPipe.standardDiameterMm
+  const selectedStandardDu = useWatch({
+    control,
+    name: 'results.steamPipe.standardDiameterMm',
+  });
 
-  // 2. Приведение к числам
   const loadKw = toNumberOrNull(loadKwInput);
   const enthalpySteam = toNumberOrNull(enthalpySteamInput);
   const enthalpyCondensate = toNumberOrNull(enthalpyCondensateInput);
@@ -70,25 +71,21 @@ export function SteamPipeTab() {
   const speedNum = toNumberOrNull(speedMsInput);
   const selectedStandardDuNum = toNumberOrNull(selectedStandardDu);
 
-  // 3. Валидация обязательности
   const loadKwEmpty = loadKw === null;
   const enthalpySteamEmpty = enthalpySteam === null;
   const enthalpyCondensateEmpty = enthalpyCondensate === null;
   const specificVolumeEmpty = specificVolume === null;
   const speedEmpty = speedNum === null;
 
-  // 3a. Валидация отрицательных значений
   const loadKwNegative = loadKw !== null && loadKw < 0;
   const enthalpySteamNegative = enthalpySteam !== null && enthalpySteam < 0;
   const enthalpyCondensateNegative = enthalpyCondensate !== null && enthalpyCondensate < 0;
   const specificVolumeNegative = specificVolume !== null && specificVolume < 0;
   const speedNegative = speedNum !== null && speedNum < 0;
 
-  // 4. Скорость: проверка диапазона (только если поле заполнено и не отрицательное)
   const speedIsValid = speedEmpty || speedNegative ? false : isSpeedInRange(speedNum!);
   const speedHasRangeError = !speedEmpty && !speedNegative && !speedIsValid;
 
-  // 5. Есть ли ЛЮБАЯ ошибка во входных полях → расчёт не идёт
   const hasInputErrors =
     modeEmpty ||
     loadKwEmpty || loadKwNegative ||
@@ -97,10 +94,8 @@ export function SteamPipeTab() {
     specificVolumeEmpty || specificVolumeNegative ||
     speedEmpty || speedNegative || speedHasRangeError;
 
-  // 6. Ручной режим: стандартный Ду обязателен
   const manualDuMissing = isManual && selectedStandardDuNum === null;
 
-  // 7. Расчёт (только когда нет ошибок ввода)
   const canCalc = !hasInputErrors;
   const effectiveSpeedMs = speedNum ?? AUTO_STEAM_SPEED_MS_DEFAULT;
 
@@ -114,10 +109,8 @@ export function SteamPipeTab() {
 
   const estimatedDu = canCalc && area ? calcEstimatedDiameter(area) : 0;
 
-  // 8. Проверка Ду ≤ 300
   const duOutOfRange = estimatedDu > MAX_STANDARD_DU_MM;
 
-  // 9. Стандартный Ду
   const autoStandardDu = (isAuto && estimatedDu > 0) ? selectStandardDu(estimatedDu) : 0;
   const effectiveStandardDu = isAuto
     ? autoStandardDu
@@ -130,43 +123,39 @@ export function SteamPipeTab() {
     ? calcActualSteamSpeed(flow, standardArea, specificVolume)
     : 0;
 
-  // 10. При переключении auto → manual сбрасываем унаследованный Ду
   useEffect(() => {
     if (isManual) {
       const current = toNumberOrNull(selectedStandardDu);
       if (current !== null) {
-        setValue('results.standardDiameterMm', undefined);
+        setValue('results.steamPipe.standardDiameterMm', undefined);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabMode]);
 
-  // 11. Сохранение результатов.
-  //     ВАЖНО: при отсутствии валидного расчёта очищаем results.* (undefined),
-  //     чтобы после «Сброса данных» в results не оставались нули/старые значения.
   useEffect(() => {
     if (!canCalc) {
-      setValue('results.steamFlowKgH', undefined);
-      setValue('results.preliminarySpeedMs', undefined);
-      setValue('results.estimatedPipeAreaM2', undefined);
-      setValue('results.estimatedDiameterMm', undefined);
+      setValue('results.steamPipe.steamFlowKgH', undefined);
+      setValue('results.steamPipe.preliminarySpeedMs', undefined);
+      setValue('results.steamPipe.estimatedPipeAreaM2', undefined);
+      setValue('results.steamPipe.estimatedDiameterMm', undefined);
       if (isAuto) {
-        setValue('results.standardDiameterMm', undefined);
+        setValue('results.steamPipe.standardDiameterMm', undefined);
       }
-      setValue('results.pipeCrossSectionAreaM2', undefined);
-      setValue('results.actualSpeedMs', undefined);
+      setValue('results.steamPipe.pipeCrossSectionAreaM2', undefined);
+      setValue('results.steamPipe.actualSpeedMs', undefined);
       return;
     }
 
-    setValue('results.steamFlowKgH', flow);
-    setValue('results.preliminarySpeedMs', effectiveSpeedMs);
-    setValue('results.estimatedPipeAreaM2', area);
-    setValue('results.estimatedDiameterMm', estimatedDu);
+    setValue('results.steamPipe.steamFlowKgH', flow);
+    setValue('results.steamPipe.preliminarySpeedMs', effectiveSpeedMs);
+    setValue('results.steamPipe.estimatedPipeAreaM2', area);
+    setValue('results.steamPipe.estimatedDiameterMm', estimatedDu);
     if (isAuto) {
-      setValue('results.standardDiameterMm', effectiveStandardDu);
+      setValue('results.steamPipe.standardDiameterMm', effectiveStandardDu);
     }
-    setValue('results.pipeCrossSectionAreaM2', standardArea);
-    setValue('results.actualSpeedMs', actualSpeed);
+    setValue('results.steamPipe.pipeCrossSectionAreaM2', standardArea);
+    setValue('results.steamPipe.actualSpeedMs', actualSpeed);
   }, [
     canCalc,
     flow,
@@ -181,10 +170,12 @@ export function SteamPipeTab() {
   ]);
 
   const handleStandardDuChange = (val: string) => {
-    setValue('results.standardDiameterMm', val === '' ? undefined : Number(val));
+    setValue(
+      'results.steamPipe.standardDiameterMm',
+      val === '' ? undefined : Number(val),
+    );
   };
 
-  // 12. LaTeX — везде toFixed(6)
   const flowFormula = flow > 0
     ? `G = \\frac{${loadKw} \\cdot 3600}{${enthalpySteam} - ${enthalpyCondensate}} \\cdot 0.99 = ${flow.toFixed(6)}`
     : '';
@@ -202,7 +193,6 @@ export function SteamPipeTab() {
     ? `\\omega = \\frac{4 \\cdot ${flow.toFixed(6)} \\cdot ${specificVolume}}{${(effectiveStandardDu / 1000).toFixed(6)}^2 \\cdot 3600 \\cdot \\pi} = ${actualSpeed.toFixed(6)}`
     : '';
 
-  // Хелпер приоритета: пусто → отрицательное → диапазон (для скорости)
   const buildHelper = (
     empty: boolean,
     negative: boolean,
@@ -349,7 +339,6 @@ export function SteamPipeTab() {
                     unit="мм"
                   />
                 )}
-
 
                 <ResultRow
                   label={`Площадь поперечного сечения трубы при Ду ${effectiveStandardDu} мм`}

@@ -33,25 +33,21 @@ function isEmptyString(v: unknown): boolean {
 export function PumpsTab() {
   const { control, setValue } = useFormContext<InputData>();
 
-  // Локальный режим — читаем "сырое" значение из формы, без дефолта.
   const rawMode = useWatch({ control, name: 'pumps.mode' });
   const tabMode = rawMode ?? '';
   const modeEmpty = tabMode === '';
   const isManual = tabMode === 'manual';
 
-  // Глобальные данные
   const loadKwInput = useWatch({ control, name: 'system.loadKw' });
   const supplyTempCInput = useWatch({ control, name: 'system.supplyTempC' });
   const returnTempCInput = useWatch({ control, name: 'system.returnTempC' });
   const hydraulicLossMInput = useWatch({ control, name: 'system.hydraulicLossM' });
 
-  // Локальные данные
   const pumpCountInput = useWatch({ control, name: 'pumps.pumpCount' });
   const hxLossMInput = useWatch({ control, name: 'pumps.hxLossM' });
   const reserveMInput = useWatch({ control, name: 'pumps.reserveM' });
   const extraLossMInput = useWatch({ control, name: 'pumps.extraLossM' });
 
-  // Приведение к числам
   const loadKw = toNumberOrNull(loadKwInput);
   const supplyTempC = toNumberOrNull(supplyTempCInput);
   const returnTempC = toNumberOrNull(returnTempCInput);
@@ -61,19 +57,16 @@ export function PumpsTab() {
   const reserveM = toNumberOrNull(reserveMInput);
   const extraLossM = toNumberOrNull(extraLossMInput);
 
-  // Обязательность — глобальные поля
   const loadKwEmpty = loadKw === null;
   const supplyTempCEmpty = supplyTempC === null;
   const returnTempCEmpty = returnTempC === null;
   const hydraulicLossMEmpty = hydraulicLossM === null;
 
-  // Обязательность — локальные поля (только в ручном)
   const pumpCountEmpty = isEmptyString(pumpCountInput);
   const hxLossMEmpty = hxLossM === null;
   const reserveMEmpty = reserveM === null;
   const extraLossMEmpty = extraLossM === null;
 
-  // Отрицательные значения
   const loadKwNegative = loadKw !== null && loadKw < 0;
   const supplyTempCNegative = supplyTempC !== null && supplyTempC < 0;
   const returnTempCNegative = returnTempC !== null && returnTempC < 0;
@@ -99,19 +92,16 @@ export function PumpsTab() {
   const hasInputErrors = commonErrors || manualErrors;
   const canCalc = !hasInputErrors;
 
-  // 1. Расход вторичного контура
   const secondaryFlow =
     canCalc && loadKw && supplyTempC && returnTempC
       ? calcSecondaryFlowForPumps(loadKw, supplyTempC, returnTempC)
       : 0;
 
-  // 2. Расход насоса
   const pumpFlow =
     canCalc && secondaryFlow && pumpCountNum
       ? calcPumpFlow(secondaryFlow, pumpCountNum)
       : 0;
 
-  // 3. Напор насоса
   const pumpHead = canCalc
     ? calcPumpHead(
         hydraulicLossM ?? 0,
@@ -121,20 +111,17 @@ export function PumpsTab() {
       )
     : 0;
 
-  // Сохранение результатов.
-  // ВАЖНО: при отсутствии валидного расчёта очищаем results.* (undefined),
-  // чтобы после «Сброса данных» не оставалось нулей / старых значений.
+  // Сохранение результатов (вложенные пути results.pumps.*).
   useEffect(() => {
     if (!canCalc) {
-      setValue('results.pumpFlowM3h', undefined);
-      setValue('results.pumpHeadM', undefined);
+      setValue('results.pumps.pumpFlowM3h', undefined);
+      setValue('results.pumps.pumpHeadM', undefined);
       return;
     }
-    setValue('results.pumpFlowM3h', pumpFlow);
-    setValue('results.pumpHeadM', pumpHead);
+    setValue('results.pumps.pumpFlowM3h', pumpFlow);
+    setValue('results.pumps.pumpHeadM', pumpHead);
   }, [canCalc, pumpFlow, pumpHead, setValue]);
 
-  // LaTeX
   const pumpFlowFormula = pumpFlow > 0
     ? `G_{нас} = \\frac{0.86 \\cdot ${loadKw}}{${supplyTempC} - ${returnTempC}} \\cdot \\frac{1}{${pumpCountNum}} = ${pumpFlow.toFixed(4)}`
     : '';
@@ -143,7 +130,6 @@ export function PumpsTab() {
     ? `H = ${hydraulicLossM ?? 0} + ${hxLossM ?? 0} + ${reserveM ?? 0} + ${extraLossM ?? 0} = ${pumpHead.toFixed(3)}`
     : '';
 
-  // Хелпер приоритета: пусто → отрицательное
   const buildHelper = (empty: boolean, negative: boolean): string | undefined =>
     empty ? REQUIRED_MSG : negative ? NEGATIVE_MSG : undefined;
 

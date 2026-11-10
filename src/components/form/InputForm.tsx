@@ -84,7 +84,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     title: 'Подбор компонентов',
     items: [
-      { key: 'arm-secondary', label: 'Арматура · Вторичка', element: <ChoiceSecondaryArmatureTab /> },
+      { key: 'arm-secondary', label: 'Арматура · Вторичный контур', element: <ChoiceSecondaryArmatureTab /> },
       { key: 'arm-makeup', label: 'Арматура · Подпитка', element: <ChoiceMakeupArmatureTab /> },
       { key: 'pump-choice', label: 'Насос', element: <ChoicePumpTab /> },
       { key: 'pto', label: 'ПТО', element: <ChoicePtoTab /> },

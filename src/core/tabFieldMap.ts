@@ -30,15 +30,15 @@ export const TAB_FIELDS: Record<string, string[]> = {
     'system.designPressureBar',
   ],
   scheme: [
-    'scheme.hasSeparator',
-    'scheme.hasAccountingPrimary',
-    'scheme.trapReserve',
-    'scheme.hxReserve',
-    'scheme.pumpReserve',
-    'scheme.hasAccountingSecondary',
-    'scheme.makeupConfig',
-    'scheme.hasExpansionTank',
-    'scheme.aupdConfig',
+    'scheme.primary.hasSeparator',
+    'scheme.primary.hasAccountingPrimary',
+    'scheme.primary.trapReserve',
+    'scheme.secondary.hxReserve',
+    'scheme.secondary.pumpReserve',
+    'scheme.secondary.hasAccountingSecondary',
+    'scheme.makeup.makeupConfig',
+    'scheme.makeup.hasExpansionTank',
+    'scheme.makeup.aupdConfig',
   ],
 
   'steam-pipe': [
@@ -192,10 +192,7 @@ export const TAB_FIELDS: Record<string, string[]> = {
 };
 
 /** Возвращает пустое значение для конкретного пути на основе EMPTY_INPUT. */
-export function getEmptyValueForPath(
-  emptyInput: InputData,
-  path: string,
-): unknown {
+export function getEmptyValueForPath(emptyInput: InputData, path: string): unknown {
   const parts = path.split('.');
   let cur: unknown = emptyInput;
   for (const p of parts) {

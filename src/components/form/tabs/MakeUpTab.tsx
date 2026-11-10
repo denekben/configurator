@@ -45,39 +45,30 @@ function isEmptyString(v: unknown): boolean {
 export function MakeUpTab() {
   const { control, setValue } = useFormContext<InputData>();
 
-  // Локальный режим — читаем как есть, без дефолта.
   const tabModeRaw = useWatch({ control, name: 'makeUp.mode' });
   const tabMode = tabModeRaw ?? '';
   const modeEmpty = tabMode === '';
   const isManual = tabMode === 'manual';
 
-  // Глобальные данные
   const loadKwInput = useWatch({ control, name: 'system.loadKw' });
   const systemVolumeLInput = useWatch({ control, name: 'system.systemVolumeL' });
 
-  // Локальные данные
   const volumeCoefInput = useWatch({ control, name: 'makeUp.makeupVolumeCoef' });
   const preliminarySpeedInput = useWatch({ control, name: 'makeUp.makeupPreliminarySpeed' });
   const standardDuInput = useWatch({ control, name: 'makeUp.makeupStandardDu' });
   const editStandardDu = useWatch({ control, name: 'makeUp.editStandardDu' }) ?? false;
 
-  // Приведение к числам
   const loadKw = toNumberOrNull(loadKwInput);
   const systemVolumeL = toNumberOrNull(systemVolumeLInput);
   const volumeCoef = toNumberOrNull(volumeCoefInput);
   const preliminarySpeed = toNumberOrNull(preliminarySpeedInput);
   const standardDuNum = toNumberOrNull(standardDuInput);
 
-  // Обязательность
-  // loadKw обязателен всегда
   const loadKwEmpty = loadKw === null;
-  // system.systemVolumeL — НЕ обязателен
-  // локальные поля обязательны только в ручном режиме
   const volumeCoefEmpty = isEmptyString(volumeCoefInput);
   const preliminarySpeedEmpty = preliminarySpeed === null;
   const standardDuEmpty = isEmptyString(standardDuInput);
 
-  // Отрицательные значения
   const loadKwNegative = loadKw !== null && loadKw < 0;
   const systemVolumeLNegative = systemVolumeL !== null && systemVolumeL < 0;
   const preliminarySpeedNegative = preliminarySpeed !== null && preliminarySpeed < 0;
@@ -96,44 +87,39 @@ export function MakeUpTab() {
   const standardDus = [15, 20, 25, 32, 40, 50, 65, 80, 100, 125, 150, 200, 250, 300]
     .map(v => ({ value: String(v), label: String(v) }));
 
-  // 1. Расход
   const flow = canCalc
     ? calcMakeupFlow(loadKw ?? 0, volumeCoef ?? 0, systemVolumeL ?? undefined)
     : 0;
 
-  // 2. Ориентировочный Ду
   const estimatedDu = (canCalc && flow && preliminarySpeed)
     ? calcMakeupEstimatedDu(flow, preliminarySpeed)
     : 0;
 
-  // 3. Скорость воды
   const actualSpeed = (canCalc && flow && standardDuNum)
     ? calcMakeupActualSpeed(flow, standardDuNum)
     : 0;
 
-  // Сохранение результатов.
-  // ВАЖНО: при отсутствии валидного расчёта очищаем results.* (undefined),
-  // чтобы после «Сброса данных» не оставалось нулей / старых значений.
+  // Сохранение результатов (вложенные пути results.makeUp.*).
   useEffect(() => {
     if (!canCalc) {
-      setValue('results.makeupVolumeCoef', undefined);
-      setValue('results.makeupFlowM3h', undefined);
-      setValue('results.makeupPreliminarySpeed', undefined);
-      setValue('results.makeupEstimatedDuMm', undefined);
-      setValue('results.makeupStandardDuMm', undefined);
-      setValue('results.makeupActualSpeedMs', undefined);
+      setValue('results.makeUp.makeupVolumeCoef', undefined);
+      setValue('results.makeUp.makeupFlowM3h', undefined);
+      setValue('results.makeUp.makeupPreliminarySpeed', undefined);
+      setValue('results.makeUp.makeupEstimatedDuMm', undefined);
+      setValue('results.makeUp.makeupStandardDuMm', undefined);
+      setValue('results.makeUp.makeupActualSpeedMs', undefined);
       return;
     }
 
     setValue(
-      'results.makeupVolumeCoef',
+      'results.makeUp.makeupVolumeCoef',
       volumeCoef != null ? String(volumeCoef) : undefined,
     );
-    setValue('results.makeupFlowM3h', flow);
-    setValue('results.makeupPreliminarySpeed', preliminarySpeed ?? undefined);
-    setValue('results.makeupEstimatedDuMm', estimatedDu);
-    setValue('results.makeupStandardDuMm', standardDuNum ?? undefined);
-    setValue('results.makeupActualSpeedMs', actualSpeed);
+    setValue('results.makeUp.makeupFlowM3h', flow);
+    setValue('results.makeUp.makeupPreliminarySpeed', preliminarySpeed ?? undefined);
+    setValue('results.makeUp.makeupEstimatedDuMm', estimatedDu);
+    setValue('results.makeUp.makeupStandardDuMm', standardDuNum ?? undefined);
+    setValue('results.makeUp.makeupActualSpeedMs', actualSpeed);
   }, [
     canCalc,
     volumeCoef,
@@ -145,7 +131,6 @@ export function MakeUpTab() {
     setValue,
   ]);
 
-  // LaTeX
   const isVolumeBased = (systemVolumeL ?? 0) > 0;
 
   const flowFormula = flow > 0
@@ -162,7 +147,6 @@ export function MakeUpTab() {
     ? `v = ${flow.toFixed(4)} \\cdot \\left(\\frac{18.8}{${standardDuNum}}\\right)^2 = ${actualSpeed.toFixed(4)}`
     : '';
 
-  // Хелпер приоритета: пусто → отрицательное
   const buildHelper = (empty: boolean, negative: boolean): string | undefined =>
     empty ? REQUIRED_MSG : negative ? NEGATIVE_MSG : undefined;
 
@@ -194,7 +178,6 @@ export function MakeUpTab() {
             error={loadKwEmpty || loadKwNegative}
             helperText={buildHelper(loadKwEmpty, loadKwNegative)}
           />
-          {/* Объём системы — НЕ обязателен, но отрицательное значение подсвечиваем */}
           <TextControl
             name="system.systemVolumeL"
             label="Объём системы (если есть), л"
@@ -209,7 +192,6 @@ export function MakeUpTab() {
       {isManual && (
         <>
           <SectionCard title="Дополнительные параметры Подпитки">
-            {/* Коэффициент объёма — обычный SelectControl */}
             <SelectControl
               name="makeUp.makeupVolumeCoef"
               label="Коэффициент объёма, л/кВт"
@@ -231,7 +213,6 @@ export function MakeUpTab() {
               helperText={buildHelper(preliminarySpeedEmpty, preliminarySpeedNegative)}
             />
 
-            {/* Галочка «Редактировать Ду» — как в SecondaryCircuitTab */}
             <Controller
               name="makeUp.editStandardDu"
               control={control}
@@ -256,7 +237,6 @@ export function MakeUpTab() {
               )}
             />
 
-            {/* Ду блокируется, пока не поставлена галочка «Редактировать Ду» */}
             <Controller
               name="makeUp.makeupStandardDu"
               control={control}

@@ -33,15 +33,19 @@ export interface SystemParams {
   designPressureBar: number | string | null;
 }
 
-export interface SchemeParams {
+export interface SchemePrimaryParams {
   hasSeparator: 'yes' | 'no' | '';
   hasAccountingPrimary: 'yes' | 'no' | 'none' | '';
   trapReserve: '2x100' | '2x75' | '2x50' | 'none' | '';
+}
 
+export interface SchemeSecondaryParams {
   hxReserve: '2x100' | '2x75' | '2x50' | 'none' | '';
   pumpReserve: '3x50' | '2x100' | 'none' | '';
   hasAccountingSecondary: 'yes' | 'no' | 'none' | '';
+}
 
+export interface SchemeMakeupParams {
   makeupConfig:
     | 'solenoid'
     | 'solenoid_bypass'
@@ -54,6 +58,12 @@ export interface SchemeParams {
     | '';
   hasExpansionTank: 'yes' | 'no' | '';
   aupdConfig: 'none' | 'aupd' | 'aupdz' | '';
+}
+
+export interface SchemeParams {
+  primary: SchemePrimaryParams;
+  secondary: SchemeSecondaryParams;
+  makeup: SchemeMakeupParams;
 }
 
 export interface PumpsParams {
@@ -196,8 +206,7 @@ export interface InputData {
 // ВЫХОДНЫЕ ДАННЫЕ (CalcResult)
 // ==========================================
 
-export interface CalcResult {
-  // === Паропровод ===
+export interface SteamPipeResult {
   steamFlowKgH?: number;
   preliminarySpeedMs?: number;
   estimatedPipeAreaM2?: number;
@@ -205,8 +214,9 @@ export interface CalcResult {
   standardDiameterMm?: number;
   pipeCrossSectionAreaM2?: number;
   actualSpeedMs?: number;
+}
 
-  // === Конденсатоотводчик ===
+export interface CondensateTrapResult {
   trapSteamFlowKgH?: number;
   trapReserveFactor?: number;
   trapDeltaP?: number;
@@ -217,8 +227,9 @@ export interface CalcResult {
   trapActualCapacityKgH?: number;
   trapSelectedDeltaP?: number;
   trapIsSufficient?: boolean;
+}
 
-  // === Расчёт РК ===
+export interface ControlValveResult {
   valveSteamFlowKgH?: number;
   valveP1Bar?: number;
   valveDeltaPBar?: number;
@@ -235,26 +246,40 @@ export interface CalcResult {
   actuatorControlType?: string;
   actuatorVoltage?: number;
   actuatorSuSd?: string;
+}
 
-  // === Предохранительный клапан ===
+export interface SafetyValveResult {
   safetyValveDuMm?: number;
+}
 
-  // === Вторичный контур ===
+export interface SecondaryCircuitResult {
   secondaryFlowM3h?: number;
   secondaryPreliminarySpeed?: number;
   secondaryEstimatedDuMm?: number;
   secondaryStandardDuMm?: number;
   secondaryActualSpeedMs?: number;
+}
 
-  // === Циркуляционные насосы ===
+export interface PumpsResult {
   pumpFlowM3h?: number;
   pumpHeadM?: number;
+}
 
-  // === Подпитка ===
+export interface MakeUpResult {
   makeupVolumeCoef?: string;
   makeupFlowM3h?: number;
   makeupPreliminarySpeed?: number;
   makeupEstimatedDuMm?: number;
   makeupStandardDuMm?: number;
   makeupActualSpeedMs?: number;
+}
+
+export interface CalcResult {
+  steamPipe?: SteamPipeResult;
+  trap?: CondensateTrapResult;
+  controlValve?: ControlValveResult;
+  safetyValve?: SafetyValveResult;
+  secondaryCircuit?: SecondaryCircuitResult;
+  pumps?: PumpsResult;
+  makeUp?: MakeUpResult;
 }

@@ -59,10 +59,10 @@ export function CondensateTrapTab() {
   const condensatePressureInput = useWatch({ control, name: 'steamFlow.condensateLinePressureBar' });
   const trapReserveFactorInput = useWatch({ control, name: 'condensateTrap.trapReserveFactor' });
 
-  // Пользовательский выбор (управляется ТОЛЬКО через onChange в Select)
-  const selectedDu = watch('results.trapDu');
-  const selectedDeltaP = watch('results.trapDesignDeltaP');
-  const selectedTrapType = watch('results.trapTypeDeltaP');
+  // Пользовательский выбор — вложенные пути results.trap.*
+  const selectedDu = watch('results.trap.trapDu');
+  const selectedDeltaP = watch('results.trap.trapDesignDeltaP');
+  const selectedTrapType = watch('results.trap.trapTypeDeltaP');
 
   // 1. Приведение к числам
   const loadKw = toNumberOrNull(loadKwInput);
@@ -114,7 +114,7 @@ export function CondensateTrapTab() {
   const deltaPMissing = isManual && designDeltaPNum === null;
   const trapTypeMissing = isManual && selectedTrapTypeNum === null;
 
-  // 6. Расчёты (только когда нет ошибок ввода)
+  // 6. Расчёты
   const steamFlow =
     canCalc && loadKw !== null && enthalpySteam !== null && enthalpyCondensate !== null
       ? calcSteamFlow(loadKw, enthalpySteam, enthalpyCondensate)
@@ -130,7 +130,7 @@ export function CondensateTrapTab() {
       ? steamFlow * trapReserveFactor
       : 0;
 
-  // 7. Итоговая пропускная способность для выбранного Ду/типа/перепада
+  // 7. Итоговая пропускная способность
   const finalCapacity =
     isManual &&
     selectedDuNum !== null &&
@@ -142,7 +142,7 @@ export function CondensateTrapTab() {
   // 8. Проверка достаточности
   const isSufficient = finalCapacity !== null && finalCapacity >= requiredFlow;
 
-  // 9. Выбран тип, но пропускной способности нет (в таблице «—»)
+  // 9. Выбран тип, но пропускной способности нет
   const capacityMissing =
     isManual &&
     selectedDuNum !== null &&
@@ -150,24 +150,24 @@ export function CondensateTrapTab() {
     selectedTrapTypeNum !== null &&
     finalCapacity === null;
 
-  // 10. Сохранение ТОЛЬКО вычисляемых результатов
+  // 10. Сохранение вычисляемых результатов (вложенные пути results.trap.*)
   useEffect(() => {
     if (!canCalc) {
-      setValue('results.trapSteamFlowKgH', undefined);
-      setValue('results.trapReserveFactor', undefined);
-      setValue('results.trapDeltaP', undefined);
-      setValue('results.trapRequiredFlowKgH', undefined);
-      setValue('results.trapActualCapacityKgH', undefined);
-      setValue('results.trapIsSufficient', undefined);
+      setValue('results.trap.trapSteamFlowKgH', undefined);
+      setValue('results.trap.trapReserveFactor', undefined);
+      setValue('results.trap.trapDeltaP', undefined);
+      setValue('results.trap.trapRequiredFlowKgH', undefined);
+      setValue('results.trap.trapActualCapacityKgH', undefined);
+      setValue('results.trap.trapIsSufficient', undefined);
       return;
     }
 
-    setValue('results.trapSteamFlowKgH', steamFlow);
-    setValue('results.trapReserveFactor', trapReserveFactor ?? undefined);
-    setValue('results.trapDeltaP', deltaP);
-    setValue('results.trapRequiredFlowKgH', requiredFlow);
-    setValue('results.trapActualCapacityKgH', finalCapacity ?? undefined);
-    setValue('results.trapIsSufficient', isSufficient);
+    setValue('results.trap.trapSteamFlowKgH', steamFlow);
+    setValue('results.trap.trapReserveFactor', trapReserveFactor ?? undefined);
+    setValue('results.trap.trapDeltaP', deltaP);
+    setValue('results.trap.trapRequiredFlowKgH', requiredFlow);
+    setValue('results.trap.trapActualCapacityKgH', finalCapacity ?? undefined);
+    setValue('results.trap.trapIsSufficient', isSufficient);
   }, [
     canCalc,
     steamFlow,
@@ -179,7 +179,7 @@ export function CondensateTrapTab() {
     setValue,
   ]);
 
-  // 11. Генерация LaTeX
+  // 11. LaTeX
   const flowFormula =
     steamFlow > 0
       ? `G = \\frac{${loadKw} \\cdot 3600}{${enthalpySteam} - ${enthalpyCondensate}} \\cdot 0.99 = ${steamFlow.toFixed(6)}`
@@ -195,14 +195,12 @@ export function CondensateTrapTab() {
       ? `G_{тр} = ${steamFlow.toFixed(6)} \\cdot ${trapReserveFactor} = ${requiredFlow.toFixed(6)}`
       : '';
 
-  // Стиль для helper-подписей
   const helperSx = {
     mx: 1.75,
     mt: 0.5,
     color: 'error.main',
   } as const;
 
-  // Хелпер приоритета: пусто → отрицательное → диапазон
   const buildHelper = (
     empty: boolean,
     negative: boolean,
@@ -305,7 +303,6 @@ export function CondensateTrapTab() {
               Результаты расчёта
             </Typography>
 
-            {/* 1. Расход пара */}
             <ResultRow
               label="Расход пара"
               value={steamFlow.toFixed(6)}
@@ -313,7 +310,6 @@ export function CondensateTrapTab() {
               latexFormulaWithNumbers={flowFormula}
             />
 
-            {/* 2. Перепад давления */}
             <ResultRow
               label="Перепад давления"
               value={deltaP.toFixed(6)}
@@ -321,7 +317,6 @@ export function CondensateTrapTab() {
               latexFormulaWithNumbers={deltaPFormula}
             />
 
-            {/* 3. Расход для конденсатоотводчика */}
             <ResultRow
               label="Расход для конденсатоотводчика"
               value={requiredFlow.toFixed(6)}
@@ -343,7 +338,7 @@ export function CondensateTrapTab() {
                 label="Выбор расчётного перепада (бар)"
                 onChange={(e) => {
                   const v = String(e.target.value);
-                  setValue('results.trapDesignDeltaP', v === '' ? undefined : Number(v));
+                  setValue('results.trap.trapDesignDeltaP', v === '' ? undefined : Number(v));
                 }}
               >
                 {DELTA_P_OPTIONS.map((dp) => (
@@ -357,7 +352,6 @@ export function CondensateTrapTab() {
               )}
             </FormControl>
 
-            {/* 5. Давление пара */}
             {selectedDeltaP && (
               <ResultRow
                 label="Давление пара"
@@ -366,7 +360,6 @@ export function CondensateTrapTab() {
               />
             )}
 
-            {/* 6 + 7. Выбор перепада конденсатоотводчика и выбор Ду — в одну строку */}
             {designDeltaPNum !== null && (
               <Box
                 sx={{
@@ -388,7 +381,7 @@ export function CondensateTrapTab() {
                     label="Выбор перепада конденсатоотводчика (бар)"
                     onChange={(e) => {
                       const v = String(e.target.value);
-                      setValue('results.trapTypeDeltaP', v === '' ? undefined : Number(v));
+                      setValue('results.trap.trapTypeDeltaP', v === '' ? undefined : Number(v));
                     }}
                   >
                     {TRAP_TYPES.map((dp) => (
@@ -422,7 +415,7 @@ export function CondensateTrapTab() {
                     label="Выбор Ду (мм)"
                     onChange={(e) => {
                       const v = String(e.target.value);
-                      setValue('results.trapDu', v === '' ? undefined : Number(v));
+                      setValue('results.trap.trapDu', v === '' ? undefined : Number(v));
                     }}
                   >
                     {TRAP_DUS.map((du) => (
@@ -444,7 +437,7 @@ export function CondensateTrapTab() {
               </Box>
             )}
 
-            {/* 8. Табличка «Ду × Тип» с подсветкой строки выбранного типа и столбца выбранного Ду */}
+            {/* Табличка «Ду × Тип» */}
             {designDeltaPNum !== null && (
               <TableContainer component={Paper} variant="outlined" sx={{ mb: 3 }}>
                 <Table size="small">
@@ -516,7 +509,7 @@ export function CondensateTrapTab() {
               </TableContainer>
             )}
 
-            {/* 9. Итог по выбранному Ду + проверка достаточности */}
+            {/* 9. Итог + проверка достаточности */}
             {!capacityMissing &&
               designDeltaPNum !== null &&
               selectedTrapTypeNum !== null &&

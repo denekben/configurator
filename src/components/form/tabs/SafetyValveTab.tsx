@@ -47,10 +47,10 @@ export function SafetyValveTab() {
   // (undefined), чтобы после «Сброса данных» не оставалось нулей / старых значений.
   useEffect(() => {
     if (!canCalc) {
-      setValue('results.safetyValveDuMm', undefined);
+      setValue('results.safetyValve.safetyValveDuMm', undefined);
       return;
     }
-    setValue('results.safetyValveDuMm', safetyValveDuNum ?? undefined);
+    setValue('results.safetyValve.safetyValveDuMm', safetyValveDuNum ?? undefined);
   }, [canCalc, safetyValveDuNum, setValue]);
 
   const options = SAFETY_VALVE_DUS.map(v => ({ value: String(v), label: String(v) }));

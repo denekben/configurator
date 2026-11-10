@@ -79,14 +79,12 @@ export function ControlValveTab() {
 
   const isVfs2r = valveType === 'VFS-2R';
 
-  // 1. Приведение
   const loadKw = toNumberOrNull(loadKwInput);
   const enthalpySteam = toNumberOrNull(enthalpySteamInput);
   const enthalpyCondensate = toNumberOrNull(enthalpyCondensateInput);
   const steamPressureNum = toNumberOrNull(steamPressureInput);
   const dpAssumedNum = toNumberOrNull(dpAssumedInput);
 
-  // 2. Валидация обязательности
   const loadKwEmpty = loadKw === null;
   const steamPressureEmpty = steamPressureNum === null;
   const enthalpySteamEmpty = enthalpySteam === null;
@@ -98,7 +96,6 @@ export function ControlValveTab() {
   const voltageEmpty = isEmptyString(actuatorVoltageInput);
   const suSdEmpty = isEmptyString(actuatorSuSdInput);
 
-  // 2a. Валидация отрицательных значений
   const loadKwNegative = loadKw !== null && loadKw < 0;
   const steamPressureNegative = steamPressureNum !== null && steamPressureNum < 0;
   const enthalpySteamNegative = enthalpySteam !== null && enthalpySteam < 0;
@@ -119,7 +116,6 @@ export function ControlValveTab() {
   const hasInputErrors = commonErrors || manualErrors;
   const canCalc = !hasInputErrors;
 
-  // 3. Опции
   const valveTypeOptions = [
     { value: 'KM125F', label: 'КМ125Ф Аналоговый привод' },
     { value: 'KM125F_pneu', label: 'КМ125Ф Пневматический привод' },
@@ -148,7 +144,6 @@ export function ControlValveTab() {
     { value: '300', label: '300' },
   ];
 
-  // 4. Расчёты
   const steamFlow =
     canCalc && loadKw && enthalpySteam && enthalpyCondensate
       ? calcSteamFlow(loadKw, enthalpySteam, enthalpyCondensate)
@@ -170,7 +165,6 @@ export function ControlValveTab() {
 
   const valveOverloaded = Number.isNaN(actualDeltaP);
 
-  // 5. Подбор (для текущего выбранного Ду)
   const vfsActuator = isVfs2r
     ? selectActuatorByParams(
         valveDu ?? undefined,
@@ -188,7 +182,6 @@ export function ControlValveTab() {
     ? vfsActuator === null
     : otherValveCode === null;
 
-  // 5a. Табличка «возможные приводы по Ду» — для всех valveDuOptions
   const actuatorRowsByDu: ActuatorRow[] = valveDuOptions.map(({ value: du }) => {
     if (isVfs2r) {
       const act = selectActuatorByParams(
@@ -231,7 +224,6 @@ export function ControlValveTab() {
     };
   });
 
-  // 6. Лейблы
   const controlTypeFromInput =
     actuatorControlInput === 'impulse' ? 'Импульсное'
     : actuatorControlInput === 'analog' ? 'Аналоговое'
@@ -242,50 +234,59 @@ export function ControlValveTab() {
     : actuatorSuSdInput === 'spring' ? 'С пружиной'
     : '';
 
-  // 7. Сохранение
+  // Сохранение результатов (вложенные пути results.controlValve.*).
   useEffect(() => {
     if (!canCalc) {
-      setValue('results.valveSteamFlowKgH', undefined);
-      setValue('results.valveP1Bar', undefined);
-      setValue('results.valveDeltaPBar', undefined);
-      setValue('results.valveP2Bar', undefined);
-      setValue('results.valveX', undefined);
-      setValue('results.valveKvRequired', undefined);
-      setValue('results.valveKvActual', undefined);
-      setValue('results.valveActualDeltaP', undefined);
-      setValue('results.valveOverloaded', undefined);
-      setValue('results.valveType', undefined);
-      setValue('results.valveDu', undefined);
-      setValue('results.actuatorName', undefined);
-      setValue('results.actuatorCode', undefined);
-      setValue('results.actuatorControlType', undefined);
-      setValue('results.actuatorVoltage', undefined);
-      setValue('results.actuatorSuSd', undefined);
+      setValue('results.controlValve.valveSteamFlowKgH', undefined);
+      setValue('results.controlValve.valveP1Bar', undefined);
+      setValue('results.controlValve.valveDeltaPBar', undefined);
+      setValue('results.controlValve.valveP2Bar', undefined);
+      setValue('results.controlValve.valveX', undefined);
+      setValue('results.controlValve.valveKvRequired', undefined);
+      setValue('results.controlValve.valveKvActual', undefined);
+      setValue('results.controlValve.valveActualDeltaP', undefined);
+      setValue('results.controlValve.valveOverloaded', undefined);
+      setValue('results.controlValve.valveType', undefined);
+      setValue('results.controlValve.valveDu', undefined);
+      setValue('results.controlValve.actuatorName', undefined);
+      setValue('results.controlValve.actuatorCode', undefined);
+      setValue('results.controlValve.actuatorControlType', undefined);
+      setValue('results.controlValve.actuatorVoltage', undefined);
+      setValue('results.controlValve.actuatorSuSd', undefined);
       return;
     }
 
-    setValue('results.valveSteamFlowKgH', steamFlow);
-    setValue('results.valveP1Bar', p1);
-    setValue('results.valveDeltaPBar', dp);
-    setValue('results.valveP2Bar', p2);
-    setValue('results.valveX', x);
-    setValue('results.valveKvRequired', kvRequired);
-    setValue('results.valveKvActual', kvsActual);
-    setValue('results.valveActualDeltaP', Number.isNaN(actualDeltaP) ? undefined : actualDeltaP);
-    setValue('results.valveOverloaded', valveOverloaded);
+    setValue('results.controlValve.valveSteamFlowKgH', steamFlow);
+    setValue('results.controlValve.valveP1Bar', p1);
+    setValue('results.controlValve.valveDeltaPBar', dp);
+    setValue('results.controlValve.valveP2Bar', p2);
+    setValue('results.controlValve.valveX', x);
+    setValue('results.controlValve.valveKvRequired', kvRequired);
+    setValue('results.controlValve.valveKvActual', kvsActual);
+    setValue(
+      'results.controlValve.valveActualDeltaP',
+      Number.isNaN(actualDeltaP) ? undefined : actualDeltaP,
+    );
+    setValue('results.controlValve.valveOverloaded', valveOverloaded);
 
-    setValue('results.valveType', valveType);
-    setValue('results.valveDu', valveDu ?? undefined);
+    setValue('results.controlValve.valveType', valveType);
+    setValue('results.controlValve.valveDu', valveDu ?? undefined);
 
-    setValue('results.actuatorName', vfsActuator?.name ?? otherValveCode?.name ?? '');
-    setValue('results.actuatorCode', vfsActuator?.code ?? otherValveCode?.code ?? '');
-    setValue('results.actuatorControlType',
-      vfsActuator?.controlType ?? (controlTypeFromInput || ''));
-    setValue('results.actuatorVoltage',
+    setValue('results.controlValve.actuatorName', vfsActuator?.name ?? otherValveCode?.name ?? '');
+    setValue('results.controlValve.actuatorCode', vfsActuator?.code ?? otherValveCode?.code ?? '');
+    setValue(
+      'results.controlValve.actuatorControlType',
+      vfsActuator?.controlType ?? (controlTypeFromInput || ''),
+    );
+    setValue(
+      'results.controlValve.actuatorVoltage',
       vfsActuator?.voltage
-        ?? (actuatorVoltageInput ? Number(actuatorVoltageInput) : undefined));
-    setValue('results.actuatorSuSd',
-      vfsActuator?.suSd ?? (suSdFromInput || ''));
+        ?? (actuatorVoltageInput ? Number(actuatorVoltageInput) : undefined),
+    );
+    setValue(
+      'results.controlValve.actuatorSuSd',
+      vfsActuator?.suSd ?? (suSdFromInput || ''),
+    );
   }, [
     canCalc,
     steamFlow, p1, dp, p2, x, kvRequired, kvsActual, actualDeltaP, valveOverloaded,
@@ -294,7 +295,6 @@ export function ControlValveTab() {
     setValue,
   ]);
 
-  // 8. LaTeX
   const flowFormula = steamFlow > 0
     ? `G = \\frac{${loadKw} \\cdot 3600}{${enthalpySteam} - ${enthalpyCondensate}} \\cdot 0.99 = ${steamFlow.toFixed(6)}`
     : '';
@@ -319,7 +319,6 @@ export function ControlValveTab() {
       : dash;
   const suSdLabel = vfsActuator?.suSd ?? (suSdFromInput || dash);
 
-  // Хелпер приоритета: пусто → отрицательное
   const buildHelper = (empty: boolean, negative: boolean): string | undefined =>
     empty ? REQUIRED_MSG : negative ? NEGATIVE_MSG : undefined;
 
@@ -477,7 +476,6 @@ export function ControlValveTab() {
                   </>
                 )}
 
-                {/* Селект Ду РК — после перепада давления на РК */}
                 <SelectControl
                   name="controlValve.valveDu"
                   label="Ду РК"
@@ -495,7 +493,6 @@ export function ControlValveTab() {
                   options={valveDuOptions}
                 />
 
-                {/* Табличка возможных приводов по Ду (показывается до выбора Ду) */}
                 {actuatorRowsByDu.length > 0 && (
                   <TableContainer component={Paper} variant="outlined" sx={{ my: 3 }}>
                     <Table size="small">
@@ -512,6 +509,7 @@ export function ControlValveTab() {
                       <TableBody>
                         {actuatorRowsByDu.map((row) => {
                           const isSelected = !duEmpty && valveDu === row.du;
+                          const duNum = Number.parseFloat(row.du);
                           return (
                             <TableRow
                               key={row.du}
@@ -524,7 +522,7 @@ export function ControlValveTab() {
                                   : undefined
                               }
                             >
-                              <TableCell>{row.du}</TableCell>
+                              <TableCell>{duNum > 80 ? row.du + ' (200)': row.du + ' (80)'}</TableCell>
                               <TableCell>{row.name}</TableCell>
                               <TableCell>{row.code}</TableCell>
                               <TableCell>{row.controlType}</TableCell>

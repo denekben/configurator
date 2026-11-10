@@ -2,14 +2,8 @@
 
 import type { InputData } from './types';
 
-/**
- * «Пустой» дефолт: все поля обнулены.
- * Используется при сбросе формы, чтобы сразу показать обязательные предупреждения.
- */
 export const EMPTY_INPUT: InputData = {
-  calcMode: {
-    calcMode: '',
-  },
+  calcMode: { calcMode: '' },
   steamFlow: {
     steamTempC: null,
     steamPressureBar: null,
@@ -32,17 +26,21 @@ export const EMPTY_INPUT: InputData = {
     designPressureBar: '',
   },
   scheme: {
-    hasSeparator: '',
-    hasAccountingPrimary: '',
-    trapReserve: '',
-
-    hxReserve: '',
-    pumpReserve: '',
-    hasAccountingSecondary: '',
-
-    makeupConfig: '',
-    hasExpansionTank: '',
-    aupdConfig: '',
+    primary: {
+      hasSeparator: '',
+      hasAccountingPrimary: '',
+      trapReserve: '',
+    },
+    secondary: {
+      hxReserve: '',
+      pumpReserve: '',
+      hasAccountingSecondary: '',
+    },
+    makeup: {
+      makeupConfig: '',
+      hasExpansionTank: '',
+      aupdConfig: '',
+    },
   },
   pumps: {
     pumpCount: null,
@@ -130,14 +128,8 @@ export const EMPTY_INPUT: InputData = {
   results: {},
 };
 
-/**
- * Рабочий дефолт — с реальными значениями.
- * Оставлен для обратной совместимости (если где-то ещё используется).
- */
 export const DEFAULT_INPUT: InputData = {
-  calcMode: {
-    calcMode: 'manual',
-  },
+  calcMode: { calcMode: 'manual' },
   steamFlow: {
     steamTempC: 158,
     steamPressureBar: 4.8,
@@ -159,17 +151,21 @@ export const DEFAULT_INPUT: InputData = {
     designPressureBar: 10,
   },
   scheme: {
-    hasSeparator: 'yes',
-    hasAccountingPrimary: 'yes',
-    trapReserve: '2x50',
-
-    hxReserve: '2x100',
-    pumpReserve: '3x50',
-    hasAccountingSecondary: 'yes',
-
-    makeupConfig: 'solenoid',
-    hasExpansionTank: 'no',
-    aupdConfig: 'none',
+    primary: {
+      hasSeparator: 'yes',
+      hasAccountingPrimary: 'yes',
+      trapReserve: '2x50',
+    },
+    secondary: {
+      hxReserve: '2x100',
+      pumpReserve: '3x50',
+      hasAccountingSecondary: 'yes',
+    },
+    makeup: {
+      makeupConfig: 'solenoid',
+      hasExpansionTank: 'no',
+      aupdConfig: 'none',
+    },
   },
   pumps: {
     pumpCount: 1,
@@ -252,7 +248,7 @@ export const DEFAULT_INPUT: InputData = {
     taskAuthor: 'Сизых А.С.',
     taskAuthorPhone: '88005553535',
     calcNumber: 'N1410261476',
-    schemeKind: 'scheme1', 
+    schemeKind: 'scheme1',
   },
   results: {},
 };
