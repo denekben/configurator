@@ -5,7 +5,6 @@ import { Box, Typography, Divider } from '@mui/material';
 import { SectionCard } from '../../controls/SectionCard';
 import { TextControl } from '../../controls/TextControl';
 import { SelectControl } from '../../controls/SelectControl';
-import { GlobalDataWrapper } from '../GlobalDataWrapper';
 import type { InputData } from '../../../core/types';
 
 const REQUIRED_MSG = 'Обязательное поле';

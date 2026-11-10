@@ -5,7 +5,6 @@ import { Controller, useFormContext } from 'react-hook-form';
 import {
   Box,
   Typography,
-  Divider,
   FormControl,
   FormHelperText,
   FormLabel,
@@ -184,7 +183,7 @@ export function DesignTab() {
       <Dialog
         open={previewOpen}
         onClose={closePreview}
-        maxWidth="xxl"
+        maxWidth="xl"
         fullWidth
       >
         <DialogTitle>{preview?.label ?? ''}</DialogTitle>

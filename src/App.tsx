@@ -138,9 +138,12 @@ function App() {
     }
   }, [result]);
 
+  /**
+   * Непосредственно генерация файла. Сюда попадаем,
+   * когда данные полные или пользователь нажал «Всё равно сгенерировать».
+   */
   const generateFile = () => {
     try {
-      downloadSpecSkeleton('Спецификация_скелет.xlsx');
     } catch (err) {
       console.error('Не удалось сгенерировать документацию:', err);
       alert('Ошибка при генерации файла. Подробности в консоли.');
@@ -148,7 +151,21 @@ function App() {
   };
 
   const handleGenerateDoc = () => {
-    
+    const data = formRef.current?.getValues();
+    if (!data) {
+      // Формы нет на экране (мы на экране результатов) — генерируем сразу.
+      generateFile();
+      return;
+    }
+
+    const missingPaths = collectMissing(data);
+    if (missingPaths.length > 0) {
+      setMissing(missingPaths);
+      setDialogOpen(true);
+      return;
+    }
+
+    generateFile();
   };
 
   const handleGenerateAnyway = () => {
