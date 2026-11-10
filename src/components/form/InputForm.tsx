@@ -48,6 +48,7 @@ import { ChoicePumpTab } from './tabs/ChoicePumpTab';
 import { ChoicePtoTab } from './tabs/ChoicePtoTab';
 import { PumpsTab } from './tabs/PumpsTab';
 import { DesignTab } from './tabs/DesignTab';
+import { SchemeTab } from './tabs/SchemeTab';
 
 interface Props {
   onCalculated: (data: InputData, result: CalcResult) => void;
@@ -62,9 +63,10 @@ type NavGroup = { title: string; items: NavItem[] };
 
 const NAV_GROUPS: NavGroup[] = [
   {
-    title: 'Исходные данные',
+    title: 'Общие данные',
     items: [
       { key: 'global', label: 'Глобальные данные', element: <GlobalDataTab /> },
+      { key: 'scheme', label: 'Параметры схемы', element: <SchemeTab /> },
     ],
   },
   {

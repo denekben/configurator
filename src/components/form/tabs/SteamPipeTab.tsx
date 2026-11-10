@@ -282,7 +282,7 @@ export function SteamPipeTab() {
             speedEmpty,
             speedNegative,
             speedHasRangeError
-              ? `Вне диапазона ${STEAM_SPEED_MIN_MS}–${STEAM_SPEED_MAX_MS} м/с (сейчас ${(speedNum ?? 0).toFixed(2)}).`
+              ? `Вне диапазона ${STEAM_SPEED_MIN_MS}–${STEAM_SPEED_MAX_MS} м/с (сейчас ${(speedNum ?? 0).toFixed(6)}).`
               : undefined,
           )}
         />
@@ -303,11 +303,6 @@ export function SteamPipeTab() {
               latexFormulaWithNumbers={flowFormula}
             />
             <ResultRow
-              label="Предварительная скорость пара"
-              value={effectiveSpeedMs.toFixed(6)}
-              unit="м/с"
-            />
-            <ResultRow
               label="Ориентировочная площадь"
               value={area.toFixed(6)}
               unit="м²"
@@ -323,7 +318,7 @@ export function SteamPipeTab() {
 
             {duOutOfRange && (
               <FormHelperText error sx={{ mb: 2, mt: -1, color: 'error.main' }}>
-                Ориентировочный Ду {estimatedDu.toFixed(2)} мм превышает максимум {MAX_STANDARD_DU_MM} мм.
+                Ориентировочный Ду {estimatedDu.toFixed(6)} мм превышает максимум {MAX_STANDARD_DU_MM} мм.
               </FormHelperText>
             )}
 
@@ -347,13 +342,14 @@ export function SteamPipeTab() {
 
             {effectiveStandardDu > 0 && (
               <>
-                <ResultRow
-                  label={isAuto
-                    ? `Стандартный Ду (авто, ближайший к ${estimatedDu.toFixed(6)} мм)`
-                    : `Стандартный Ду`}
-                  value={String(effectiveStandardDu)}
-                  unit="мм"
-                />
+                {isAuto && (
+                  <ResultRow
+                    label={`Стандартный Ду (авто, ближайший к ${estimatedDu.toFixed(6)} мм)`}
+                    value={String(effectiveStandardDu)}
+                    unit="мм"
+                  />
+                )}
+
 
                 <ResultRow
                   label={`Площадь поперечного сечения трубы при Ду ${effectiveStandardDu} мм`}

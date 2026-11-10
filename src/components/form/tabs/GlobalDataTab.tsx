@@ -107,140 +107,138 @@ export function GlobalDataTab() {
       </Typography>
       <Divider sx={{ mb: 3 }} />
 
-      <GlobalDataWrapper defaultEditable={true}>
-        <SectionCard title="Данные по пару в первичном контуре">
-          <TextControl
-            name="steamFlow.steamTempC"
-            label="Температура пара, °C"
-            control={control}
-            type="number"
-            error={steamTempCEmpty || steamTempCNegative}
-            helperText={buildHelper(steamTempCEmpty, steamTempCNegative)}
-          />
-          <TextControl
-            name="steamFlow.steamPressureBar"
-            label="Давление пара, Бар (и)"
-            control={control}
-            type="number"
-            error={steamPressureBarEmpty || steamPressureBarNegative}
-            helperText={buildHelper(steamPressureBarEmpty, steamPressureBarNegative)}
-          />
-          <TextControl
-            name="steamFlow.condensateTempC"
-            label="Температура конденсата, °C"
-            control={control}
-            type="number"
-            error={condensateTempCEmpty || condensateTempCNegative}
-            helperText={buildHelper(condensateTempCEmpty, condensateTempCNegative)}
-          />
-          <TextControl
-            name="steamFlow.condensateLinePressureBar"
-            label="Давление в конденсатной линии, Бар (и)"
-            control={control}
-            type="number"
-            error={condensateLinePressureBarEmpty || condensateLinePressureBarNegative}
-            helperText={buildHelper(condensateLinePressureBarEmpty, condensateLinePressureBarNegative)}
-          />
-        </SectionCard>
+      <SectionCard title="Данные по пару в первичном контуре">
+        <TextControl
+          name="steamFlow.steamTempC"
+          label="Температура пара, °C"
+          control={control}
+          type="number"
+          error={steamTempCEmpty || steamTempCNegative}
+          helperText={buildHelper(steamTempCEmpty, steamTempCNegative)}
+        />
+        <TextControl
+          name="steamFlow.steamPressureBar"
+          label="Давление пара, Бар (и)"
+          control={control}
+          type="number"
+          error={steamPressureBarEmpty || steamPressureBarNegative}
+          helperText={buildHelper(steamPressureBarEmpty, steamPressureBarNegative)}
+        />
+        <TextControl
+          name="steamFlow.condensateTempC"
+          label="Температура конденсата, °C"
+          control={control}
+          type="number"
+          error={condensateTempCEmpty || condensateTempCNegative}
+          helperText={buildHelper(condensateTempCEmpty, condensateTempCNegative)}
+        />
+        <TextControl
+          name="steamFlow.condensateLinePressureBar"
+          label="Давление в конденсатной линии, Бар (и)"
+          control={control}
+          type="number"
+          error={condensateLinePressureBarEmpty || condensateLinePressureBarNegative}
+          helperText={buildHelper(condensateLinePressureBarEmpty, condensateLinePressureBarNegative)}
+        />
+      </SectionCard>
 
-        <SectionCard title="Данные по параметрам пара">
-          <TextControl
-            name="steamThermo.enthalpySteam"
-            label="Удельная массовая энтальпия пара, кДж/кг"
-            control={control}
-            type="number"
-            error={enthalpySteamEmpty || enthalpySteamNegative}
-            helperText={buildHelper(enthalpySteamEmpty, enthalpySteamNegative)}
-          />
-          <TextControl
-            name="steamThermo.enthalpyCondensate"
-            label="Удельная массовая энтальпия конденсата, кДж/кг"
-            control={control}
-            type="number"
-            error={enthalpyCondensateEmpty || enthalpyCondensateNegative}
-            helperText={buildHelper(enthalpyCondensateEmpty, enthalpyCondensateNegative)}
-          />
-          <TextControl
-            name="steamThermo.specificVolumeSteam"
-            label="Удельный объём пара, м³/кг"
-            control={control}
-            type="number"
-            error={specificVolumeSteamEmpty || specificVolumeSteamNegative}
-            helperText={buildHelper(specificVolumeSteamEmpty, specificVolumeSteamNegative)}
-          />
-          <TextControl
-            name="steamThermo.specificVolumeAfterValve"
-            label="Удельный объём пара после РК, м³/кг"
-            control={control}
-            type="number"
-            error={specificVolumeAfterValveEmpty || specificVolumeAfterValveNegative}
-            helperText={buildHelper(specificVolumeAfterValveEmpty, specificVolumeAfterValveNegative)}
-          />
-        </SectionCard>
+      <SectionCard title="Данные по параметрам пара">
+        <TextControl
+          name="steamThermo.enthalpySteam"
+          label="Удельная массовая энтальпия пара, кДж/кг"
+          control={control}
+          type="number"
+          error={enthalpySteamEmpty || enthalpySteamNegative}
+          helperText={buildHelper(enthalpySteamEmpty, enthalpySteamNegative)}
+        />
+        <TextControl
+          name="steamThermo.enthalpyCondensate"
+          label="Удельная массовая энтальпия конденсата, кДж/кг"
+          control={control}
+          type="number"
+          error={enthalpyCondensateEmpty || enthalpyCondensateNegative}
+          helperText={buildHelper(enthalpyCondensateEmpty, enthalpyCondensateNegative)}
+        />
+        <TextControl
+          name="steamThermo.specificVolumeSteam"
+          label="Удельный объём пара, м³/кг"
+          control={control}
+          type="number"
+          error={specificVolumeSteamEmpty || specificVolumeSteamNegative}
+          helperText={buildHelper(specificVolumeSteamEmpty, specificVolumeSteamNegative)}
+        />
+        <TextControl
+          name="steamThermo.specificVolumeAfterValve"
+          label="Удельный объём пара после РК, м³/кг"
+          control={control}
+          type="number"
+          error={specificVolumeAfterValveEmpty || specificVolumeAfterValveNegative}
+          helperText={buildHelper(specificVolumeAfterValveEmpty, specificVolumeAfterValveNegative)}
+        />
+      </SectionCard>
 
-        <SectionCard title="Данные по системам">
-          <TextControl
-            name="system.loadKw"
-            label="Мощность, кВт"
-            control={control}
-            type="number"
-            error={loadKwEmpty || loadKwNegative}
-            helperText={buildHelper(loadKwEmpty, loadKwNegative)}
-          />
-          <TextControl
-            name="system.supplyTempC"
-            label="Температура подачи, °C"
-            control={control}
-            type="number"
-            error={supplyTempCEmpty || supplyTempCNegative}
-            helperText={buildHelper(supplyTempCEmpty, supplyTempCNegative)}
-          />
-          <TextControl
-            name="system.returnTempC"
-            label="Температура обратки, °C"
-            control={control}
-            type="number"
-            error={returnTempCEmpty || returnTempCNegative}
-            helperText={buildHelper(returnTempCEmpty, returnTempCNegative)}
-          />
-          <TextControl
-            name="system.hydraulicLossM"
-            label="Гидравлические потери, м.вод.ст."
-            control={control}
-            type="number"
-            error={hydraulicLossMEmpty || hydraulicLossMNegative}
-            helperText={buildHelper(hydraulicLossMEmpty, hydraulicLossMNegative)}
-          />
-          <TextControl
-            name="system.staticPressureM"
-            label="Статическое давление, м.вод.ст."
-            control={control}
-            type="number"
-            error={staticPressureMEmpty || staticPressureMNegative}
-            helperText={buildHelper(staticPressureMEmpty, staticPressureMNegative)}
-          />
-          {/* «Объём системы (если есть)» — НЕ обязателен и без проверки на отрицательность */}
-          <TextControl
-            name="system.systemVolumeL"
-            label="Объём системы (если есть), л"
-            control={control}
-            type="number"
-          />
-          <SelectControl
-            name="system.designPressureBar"
-            label="Расчётное давление, Бар"
-            control={control}
-            options={[
-              { value: '6', label: '6' },
-              { value: '10', label: '10' },
-              { value: '16', label: '16' },
-              { value: '25', label: '25' },
-            ]}
-            error={designPressureBarEmpty}
-            helperText={designPressureBarEmpty ? REQUIRED_MSG : undefined}
-          />
-        </SectionCard>
-      </GlobalDataWrapper>
+      <SectionCard title="Данные по системам">
+        <TextControl
+          name="system.loadKw"
+          label="Мощность, кВт"
+          control={control}
+          type="number"
+          error={loadKwEmpty || loadKwNegative}
+          helperText={buildHelper(loadKwEmpty, loadKwNegative)}
+        />
+        <TextControl
+          name="system.supplyTempC"
+          label="Температура подачи, °C"
+          control={control}
+          type="number"
+          error={supplyTempCEmpty || supplyTempCNegative}
+          helperText={buildHelper(supplyTempCEmpty, supplyTempCNegative)}
+        />
+        <TextControl
+          name="system.returnTempC"
+          label="Температура обратки, °C"
+          control={control}
+          type="number"
+          error={returnTempCEmpty || returnTempCNegative}
+          helperText={buildHelper(returnTempCEmpty, returnTempCNegative)}
+        />
+        <TextControl
+          name="system.hydraulicLossM"
+          label="Гидравлические потери, м.вод.ст."
+          control={control}
+          type="number"
+          error={hydraulicLossMEmpty || hydraulicLossMNegative}
+          helperText={buildHelper(hydraulicLossMEmpty, hydraulicLossMNegative)}
+        />
+        <TextControl
+          name="system.staticPressureM"
+          label="Статическое давление, м.вод.ст."
+          control={control}
+          type="number"
+          error={staticPressureMEmpty || staticPressureMNegative}
+          helperText={buildHelper(staticPressureMEmpty, staticPressureMNegative)}
+        />
+        {/* «Объём системы (если есть)» — НЕ обязателен и без проверки на отрицательность */}
+        <TextControl
+          name="system.systemVolumeL"
+          label="Объём системы (если есть), л"
+          control={control}
+          type="number"
+        />
+        <SelectControl
+          name="system.designPressureBar"
+          label="Расчётное давление, Бар"
+          control={control}
+          options={[
+            { value: '6', label: '6' },
+            { value: '10', label: '10' },
+            { value: '16', label: '16' },
+            { value: '25', label: '25' },
+          ]}
+          error={designPressureBarEmpty}
+          helperText={designPressureBarEmpty ? REQUIRED_MSG : undefined}
+        />
+      </SectionCard>
     </Box>
   );
 }

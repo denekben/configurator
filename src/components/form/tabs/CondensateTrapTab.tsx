@@ -26,7 +26,7 @@ import { GlobalDataWrapper } from '../GlobalDataWrapper';
 import { ResultRow } from '../ResultRow';
 import type { InputData } from '../../../core/types';
 import { calcSteamFlow } from '../../../core/calc/steamPipeTabCalc';
-import { getTrapSelectionTable, getSelectedTrapCapacity } from '../../../core/calc/condensateTrapTabCalc';
+import { getSelectedTrapCapacity } from '../../../core/calc/condensateTrapTabCalc';
 
 const TRAP_DUS = [25, 40, 50];
 const DELTA_P_OPTIONS = [0.1, 0.3, 0.5, 0.7, 1, 1.5, 2, 3, 4.5, 6, 7, 8, 9, 10, 12, 14];
@@ -38,7 +38,6 @@ const REQUIRED_MSG = 'Обязательное поле';
 const NEGATIVE_MSG = 'Значение не может быть отрицательным';
 const MODE_REQUIRED_MSG = 'Выберите режим подбора';
 
-/** Безопасно приводит значение из формы к числу. Пустое / невалидное → null. */
 function toNumberOrNull(v: unknown): number | null {
   if (v === undefined || v === null || v === '') return null;
   const n = typeof v === 'number' ? v : Number(v);
@@ -72,6 +71,10 @@ export function CondensateTrapTab() {
   const steamPressure = toNumberOrNull(steamPressureInput);
   const condensatePressure = toNumberOrNull(condensatePressureInput);
   const trapReserveFactor = toNumberOrNull(trapReserveFactorInput);
+
+  const designDeltaPNum = toNumberOrNull(selectedDeltaP);
+  const selectedTrapTypeNum = toNumberOrNull(selectedTrapType);
+  const selectedDuNum = toNumberOrNull(selectedDu);
 
   // 2. Валидация обязательности
   const loadKwEmpty = loadKw === null;
@@ -107,9 +110,9 @@ export function CondensateTrapTab() {
   const canCalc = !hasInputErrors;
 
   // 5. Ручной режим: обязательные селекты
-  const duMissing = isManual && toNumberOrNull(selectedDu) === null;
-  const deltaPMissing = isManual && toNumberOrNull(selectedDeltaP) === null;
-  const trapTypeMissing = isManual && toNumberOrNull(selectedTrapType) === null;
+  const duMissing = isManual && selectedDuNum === null;
+  const deltaPMissing = isManual && designDeltaPNum === null;
+  const trapTypeMissing = isManual && selectedTrapTypeNum === null;
 
   // 6. Расчёты (только когда нет ошибок ввода)
   const steamFlow =
@@ -127,32 +130,27 @@ export function CondensateTrapTab() {
       ? steamFlow * trapReserveFactor
       : 0;
 
-  // 7. Таблица подбора
-  const tableData =
-    isManual && selectedDu && selectedDeltaP
-      ? getTrapSelectionTable(selectedDu, selectedDeltaP)
-      : [];
-
-  // 8. Итоговая пропускная способность
+  // 7. Итоговая пропускная способность для выбранного Ду/типа/перепада
   const finalCapacity =
-    isManual && selectedDu && selectedDeltaP && selectedTrapType
-      ? getSelectedTrapCapacity(selectedDu, selectedDeltaP, selectedTrapType)
+    isManual &&
+    selectedDuNum !== null &&
+    designDeltaPNum !== null &&
+    selectedTrapTypeNum !== null
+      ? getSelectedTrapCapacity(selectedDuNum, designDeltaPNum, selectedTrapTypeNum)
       : null;
 
-  // 9. Проверка достаточности
+  // 8. Проверка достаточности
   const isSufficient = finalCapacity !== null && finalCapacity >= requiredFlow;
 
-  // 9a. Выбран тип, но пропускной способности нет (в таблице «—»)
+  // 9. Выбран тип, но пропускной способности нет (в таблице «—»)
   const capacityMissing =
     isManual &&
-    !!selectedDu &&
-    !!selectedDeltaP &&
-    !!selectedTrapType &&
+    selectedDuNum !== null &&
+    designDeltaPNum !== null &&
+    selectedTrapTypeNum !== null &&
     finalCapacity === null;
 
-  // 10. Сохранение ТОЛЬКО вычисляемых результатов.
-  //     ВАЖНО: при отсутствии валидного расчёта очищаем results.* (undefined),
-  //     чтобы после «Сброса данных» не оставалось нулей / старых значений.
+  // 10. Сохранение ТОЛЬКО вычисляемых результатов
   useEffect(() => {
     if (!canCalc) {
       setValue('results.trapSteamFlowKgH', undefined);
@@ -184,27 +182,27 @@ export function CondensateTrapTab() {
   // 11. Генерация LaTeX
   const flowFormula =
     steamFlow > 0
-      ? `G = \\frac{${loadKw} \\cdot 3600}{${enthalpySteam} - ${enthalpyCondensate}} \\cdot 0.99 = ${steamFlow.toFixed(2)}`
+      ? `G = \\frac{${loadKw} \\cdot 3600}{${enthalpySteam} - ${enthalpyCondensate}} \\cdot 0.99 = ${steamFlow.toFixed(6)}`
       : '';
 
   const deltaPFormula =
     deltaP > 0
-      ? `\\Delta P = ${steamPressure} - ${condensatePressure} = ${deltaP.toFixed(2)}`
+      ? `\\Delta P = ${steamPressure} - ${condensatePressure} = ${deltaP.toFixed(6)}`
       : '';
 
   const requiredFlowFormula =
     requiredFlow > 0
-      ? `G_{тр} = ${steamFlow.toFixed(2)} \\cdot ${trapReserveFactor} = ${requiredFlow.toFixed(2)}`
+      ? `G_{тр} = ${steamFlow.toFixed(6)} \\cdot ${trapReserveFactor} = ${requiredFlow.toFixed(6)}`
       : '';
 
-  // Общий стиль для helper-подписей под селектами
+  // Стиль для helper-подписей
   const helperSx = {
     mx: 1.75,
     mt: 0.5,
     color: 'error.main',
   } as const;
 
-  // Хелпер для сборки helperText с приоритетом: пусто → отрицательное → диапазон
+  // Хелпер приоритета: пусто → отрицательное → диапазон
   const buildHelper = (
     empty: boolean,
     negative: boolean,
@@ -293,13 +291,13 @@ export function CondensateTrapTab() {
             reserveEmpty,
             reserveNegative,
             reserveOutOfRange
-              ? `Вне диапазона ${RESERVE_MIN}–${RESERVE_MAX} (сейчас ${trapReserveFactor?.toFixed(2)}).`
+              ? `Вне диапазона ${RESERVE_MIN}–${RESERVE_MAX} (сейчас ${trapReserveFactor?.toFixed(6)}).`
               : undefined,
           )}
         />
       </SectionCard>
 
-      {canCalc && (
+      {canCalc && isManual && (
         <>
           <Divider sx={{ my: 4, borderBottomWidth: 2, borderColor: '#8B0000' }} />
           <Box>
@@ -307,156 +305,260 @@ export function CondensateTrapTab() {
               Результаты расчёта
             </Typography>
 
+            {/* 1. Расход пара */}
             <ResultRow
               label="Расход пара"
-              value={steamFlow.toFixed(2)}
+              value={steamFlow.toFixed(6)}
               unit="кг/ч"
               latexFormulaWithNumbers={flowFormula}
             />
+
+            {/* 2. Перепад давления */}
             <ResultRow
               label="Перепад давления"
-              value={deltaP.toFixed(2)}
+              value={deltaP.toFixed(6)}
               unit="бар"
               latexFormulaWithNumbers={deltaPFormula}
             />
+
+            {/* 3. Расход для конденсатоотводчика */}
             <ResultRow
-              label="Требуемый расход"
-              value={requiredFlow.toFixed(2)}
+              label="Расход для конденсатоотводчика"
+              value={requiredFlow.toFixed(6)}
               unit="кг/ч"
               latexFormulaWithNumbers={requiredFlowFormula}
             />
 
-            {isManual && (
-              <>
-                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 3 }}>
-                  <FormControl fullWidth size="small" error={duMissing} variant="outlined">
-                    <InputLabel>Ду конденсатоотводчика (мм)</InputLabel>
-                    <Select
-                      value={selectedDu ?? ''}
-                      label="Ду конденсатоотводчика (мм)"
-                      onChange={(e) => {
-                        const v = String(e.target.value);
-                        setValue('results.trapDu', v === '' ? undefined : Number(v));
-                      }}
-                    >
-                      {TRAP_DUS.map((du) => (
-                        <MenuItem key={du} value={du}>
-                          {du}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {duMissing && (
-                      <FormHelperText sx={helperSx}>{REQUIRED_MSG}</FormHelperText>
-                    )}
-                  </FormControl>
+            {/* 4. Выбор расчётного перепада */}
+            <FormControl
+              fullWidth
+              size="small"
+              error={deltaPMissing}
+              variant="outlined"
+              sx={{ mb: 2 }}
+            >
+              <InputLabel>Выбор расчётного перепада (бар)</InputLabel>
+              <Select
+                value={selectedDeltaP ?? ''}
+                label="Выбор расчётного перепада (бар)"
+                onChange={(e) => {
+                  const v = String(e.target.value);
+                  setValue('results.trapDesignDeltaP', v === '' ? undefined : Number(v));
+                }}
+              >
+                {DELTA_P_OPTIONS.map((dp) => (
+                  <MenuItem key={dp} value={dp}>
+                    {dp}
+                  </MenuItem>
+                ))}
+              </Select>
+              {deltaPMissing && (
+                <FormHelperText sx={helperSx}>{REQUIRED_MSG}</FormHelperText>
+              )}
+            </FormControl>
 
-                  <FormControl fullWidth size="small" error={deltaPMissing} variant="outlined">
-                    <InputLabel>Расчетный перепад (бар)</InputLabel>
-                    <Select
-                      value={selectedDeltaP ?? ''}
-                      label="Расчетный перепад (бар)"
-                      onChange={(e) => {
-                        const v = String(e.target.value);
-                        setValue('results.trapDesignDeltaP', v === '' ? undefined : Number(v));
-                      }}
-                    >
-                      {DELTA_P_OPTIONS.map((dp) => (
-                        <MenuItem key={dp} value={dp}>
-                          {dp}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {deltaPMissing && (
-                      <FormHelperText sx={helperSx}>{REQUIRED_MSG}</FormHelperText>
-                    )}
-                  </FormControl>
-                </Box>
-
-                {tableData.length > 0 && (
-                  <TableContainer component={Paper} variant="outlined" sx={{ mb: 3 }}>
-                    <Table>
-                      <TableHead>
-                        <TableRow sx={{ bgcolor: '#f5f5f5' }}>
-                          <TableCell sx={{ fontSize: '1rem', fontWeight: 'bold' }}>
-                            Тип (перепад)
-                          </TableCell>
-                          <TableCell align="right" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>
-                            Пропускная способность, кг/ч
-                          </TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {tableData.map((row, idx) => (
-                          <TableRow key={idx}>
-                            <TableCell sx={{ fontSize: '1rem' }}>{row.deltaPType}</TableCell>
-                            <TableCell align="right" sx={{ fontSize: '1rem' }}>
-                              {row.capacity !== null ? row.capacity : '—'}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )}
-
-                {selectedDu && selectedDeltaP && (
-                  <FormControl
-                    fullWidth
-                    size="small"
-                    sx={{ mb: 3 }}
-                    error={trapTypeMissing || capacityMissing}
-                    variant="outlined"
-                  >
-                    <InputLabel>Выберите перепад конденсатоотводчика (бар)</InputLabel>
-                    <Select
-                      value={selectedTrapType ?? ''}
-                      label="Выберите перепад конденсатоотводчика (бар)"
-                      onChange={(e) => {
-                        const v = String(e.target.value);
-                        setValue('results.trapTypeDeltaP', v === '' ? undefined : Number(v));
-                      }}
-                    >
-                      {TRAP_TYPES.map((dp) => (
-                        <MenuItem key={dp} value={dp}>
-                          {dp}
-                        </MenuItem>
-                      ))}
-                    </Select>
-
-                    {trapTypeMissing && (
-                      <FormHelperText sx={helperSx}>{REQUIRED_MSG}</FormHelperText>
-                    )}
-
-                    {capacityMissing && (
-                      <FormHelperText sx={helperSx}>
-                        Для Ду {selectedDu} мм, расчётного перепада {selectedDeltaP} бар и типа{' '}
-                        {selectedTrapType} бар пропускной способности нет.
-                      </FormHelperText>
-                    )}
-                  </FormControl>
-                )}
-
-                {selectedTrapType && finalCapacity !== null && (
-                  <>
-                    <ResultRow
-                      label={`Пропускная способность при перепаде ${selectedTrapType} бар (расчётный ${selectedDeltaP} бар) и Ду ${selectedDu}`}
-                      value={finalCapacity.toString()}
-                      unit="кг/ч"
-                      latexFormulaWithNumbers={`G_{факт} = ${finalCapacity}`}
-                    />
-
-                    {!isSufficient && (
-                      <FormHelperText error sx={helperSx}>
-                        Пропускная способность {finalCapacity} кг/ч меньше требуемой{' '}
-                        {requiredFlow.toFixed(2)} кг/ч.
-                      </FormHelperText>
-                    )}
-                  </>
-                )}
-              </>
+            {/* 5. Давление пара */}
+            {selectedDeltaP && (
+              <ResultRow
+                label="Давление пара"
+                value={steamPressure !== null ? steamPressure.toFixed(6) : '—'}
+                unit="бар"
+              />
             )}
+
+            {/* 6 + 7. Выбор перепада конденсатоотводчика и выбор Ду — в одну строку */}
+            {designDeltaPNum !== null && (
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                  gap: 2,
+                  mb: 3,
+                }}
+              >
+                <FormControl
+                  fullWidth
+                  size="small"
+                  error={trapTypeMissing || capacityMissing}
+                  variant="outlined"
+                >
+                  <InputLabel>Выбор перепада конденсатоотводчика (бар)</InputLabel>
+                  <Select
+                    value={selectedTrapType ?? ''}
+                    label="Выбор перепада конденсатоотводчика (бар)"
+                    onChange={(e) => {
+                      const v = String(e.target.value);
+                      setValue('results.trapTypeDeltaP', v === '' ? undefined : Number(v));
+                    }}
+                  >
+                    {TRAP_TYPES.map((dp) => (
+                      <MenuItem key={dp} value={dp}>
+                        {dp}
+                      </MenuItem>
+                    ))}
+                  </Select>
+
+                  {trapTypeMissing && (
+                    <FormHelperText sx={helperSx}>{REQUIRED_MSG}</FormHelperText>
+                  )}
+
+                  {capacityMissing && (
+                    <FormHelperText sx={helperSx}>
+                      Для Ду {selectedDu} мм, расчётного перепада {selectedDeltaP} бар и типа{' '}
+                      {selectedTrapType} бар пропускной способности нет.
+                    </FormHelperText>
+                  )}
+                </FormControl>
+
+                <FormControl
+                  fullWidth
+                  size="small"
+                  error={duMissing || capacityMissing}
+                  variant="outlined"
+                >
+                  <InputLabel>Выбор Ду (мм)</InputLabel>
+                  <Select
+                    value={selectedDu ?? ''}
+                    label="Выбор Ду (мм)"
+                    onChange={(e) => {
+                      const v = String(e.target.value);
+                      setValue('results.trapDu', v === '' ? undefined : Number(v));
+                    }}
+                  >
+                    {TRAP_DUS.map((du) => (
+                      <MenuItem key={du} value={du}>
+                        {du}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {duMissing && (
+                    <FormHelperText sx={helperSx}>{REQUIRED_MSG}</FormHelperText>
+                  )}
+                  {capacityMissing && (
+                    <FormHelperText sx={helperSx}>
+                      Для Ду {selectedDu} мм, расчётного перепада {selectedDeltaP} бар и типа{' '}
+                      {selectedTrapType} бар пропускной способности нет.
+                    </FormHelperText>
+                  )}
+                </FormControl>
+              </Box>
+            )}
+
+            {/* 8. Табличка «Ду × Тип» с подсветкой строки выбранного типа и столбца выбранного Ду */}
+            {designDeltaPNum !== null && (
+              <TableContainer component={Paper} variant="outlined" sx={{ mb: 3 }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Тип (перепад)</TableCell>
+                      {TRAP_DUS.map((du) => {
+                        const isDuSelected = selectedDuNum !== null && du === selectedDuNum;
+                        return (
+                          <TableCell
+                            key={du}
+                            align="right"
+                            sx={
+                              isDuSelected
+                                ? { fontWeight: 'bold', bgcolor: '#fdecea' }
+                                : { fontWeight: 'bold' }
+                            }
+                          >
+                            Ду {du}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {TRAP_TYPES.map((type) => {
+                      const isTypeSelected =
+                        selectedTrapTypeNum !== null && type === selectedTrapTypeNum;
+                      return (
+                        <TableRow
+                          key={type}
+                          sx={
+                            isTypeSelected
+                              ? {
+                                  bgcolor: '#fdecea',
+                                  '& td': { fontWeight: 'bold' },
+                                }
+                              : undefined
+                          }
+                        >
+                          <TableCell>{type} бар</TableCell>
+                          {TRAP_DUS.map((du) => {
+                            const isDuSelected =
+                              selectedDuNum !== null && du === selectedDuNum;
+                            const capacity = getSelectedTrapCapacity(
+                              du,
+                              designDeltaPNum,
+                              type,
+                            );
+                            return (
+                              <TableCell
+                                key={du}
+                                align="right"
+                                sx={
+                                  isDuSelected
+                                    ? { bgcolor: '#fdecea', fontWeight: 'bold' }
+                                    : undefined
+                                }
+                              >
+                                {capacity !== null ? capacity : '—'}
+                              </TableCell>
+                            );
+                          })}
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+
+            {/* 9. Итог по выбранному Ду + проверка достаточности */}
+            {!capacityMissing &&
+              designDeltaPNum !== null &&
+              selectedTrapTypeNum !== null &&
+              selectedTrapType && (
+                <>
+                  {finalCapacity !== null && (
+                    <>
+                      <ResultRow
+                        label={`Пропускная способность при перепаде ${selectedTrapType} бар (расчётный ${selectedDeltaP} бар) и Ду ${selectedDu}`}
+                        value={finalCapacity.toString()}
+                        unit="кг/ч"
+                      />
+
+                      {!isSufficient && (
+                        <FormHelperText error sx={helperSx}>
+                          Пропускная способность {finalCapacity} кг/ч меньше требуемой{' '}
+                          {requiredFlow.toFixed(6)} кг/ч.
+                        </FormHelperText>
+                      )}
+                    </>
+                  )}
+                </>
+              )}
           </Box>
         </>
+      )}
+
+      {!isManual && !modeEmpty && (
+        <Box
+          sx={{
+            mt: 4,
+            p: 4,
+            textAlign: 'center',
+            bgcolor: '#fafafa',
+            borderRadius: 2,
+            border: '1px dashed #ccc',
+          }}
+        >
+          <Typography color="text.secondary">
+            В автоматическом режиме параметры конденсатоотводчика подбираются автоматически.
+          </Typography>
+        </Box>
       )}
     </Box>
   );

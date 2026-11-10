@@ -100,6 +100,7 @@ export function ChoicePumpTab() {
           render={({ field }) => (
             <Autocomplete
               freeSolo
+              size="small"
               options={nameOptions}
               getOptionLabel={(opt) =>
                 typeof opt === 'string' ? opt : opt.model
@@ -123,7 +124,7 @@ export function ChoicePumpTab() {
                   label="Название насоса"
                   variant="outlined"
                   fullWidth
-                  margin="dense"
+                  margin="none"
                   error={nameError}
                   helperText={
                     nameEmpty
@@ -150,7 +151,6 @@ export function ChoicePumpTab() {
                 );
               }}
               noOptionsText="Ничего не найдено"
-              sx={{ mb: 2 }}
             />
           )}
         />
@@ -162,6 +162,7 @@ export function ChoicePumpTab() {
           render={({ field }) => (
             <Autocomplete
               freeSolo
+              size="small"
               options={codeOptions}
               getOptionLabel={(opt) =>
                 typeof opt === 'string' ? opt : opt.code
@@ -185,7 +186,7 @@ export function ChoicePumpTab() {
                   label="Код насоса"
                   variant="outlined"
                   fullWidth
-                  margin="dense"
+                  margin="none"
                   error={codeError}
                   helperText={
                     codeEmpty
@@ -211,7 +212,6 @@ export function ChoicePumpTab() {
                 );
               }}
               noOptionsText="Ничего не найдено"
-              sx={{ mb: 2 }}
             />
           )}
         />

@@ -2,7 +2,19 @@
 
 import { useEffect } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { Box, Typography, Divider, FormHelperText } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Divider,
+  FormHelperText,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+} from '@mui/material';
 import { SectionCard } from '../../controls/SectionCard';
 import { TextControl } from '../../controls/TextControl';
 import { RadioControl } from '../../controls/RadioControl';
@@ -19,18 +31,9 @@ import {
   selectValveCode,
 } from '../../../core/calc/controlValveTabCalc';
 
-const KM225F_MIN_DU = 65;
-const KM125F_ALLOWED_DUS = ['15', '20', '25', '32', '40', '50'];
 const REQUIRED_MSG = 'Обязательное поле';
 const NEGATIVE_MSG = 'Значение не может быть отрицательным';
 const MODE_REQUIRED_MSG = 'Выберите режим подбора';
-
-function parseValveDu(du: number | string | null | undefined): number {
-  if (du === undefined || du === null) return 0;
-  if (typeof du === 'number') return du;
-  const m = String(du).match(/\d+(?:[.,]\d+)?/);
-  return m ? parseFloat(m[0].replace(',', '.')) : 0;
-}
 
 function toNumberOrNull(v: unknown): number | null {
   if (v === undefined || v === null || v === '') return null;
@@ -43,6 +46,15 @@ function isEmptyString(v: unknown): boolean {
 }
 
 const helperSx = { mx: 1.75, mt: 0.5, color: 'error.main' } as const;
+
+interface ActuatorRow {
+  du: string;
+  name: string;
+  code: string;
+  controlType: string;
+  voltage: string;
+  suSd: string;
+}
 
 export function ControlValveTab() {
   const { control, setValue } = useFormContext<InputData>();
@@ -74,9 +86,6 @@ export function ControlValveTab() {
   const steamPressureNum = toNumberOrNull(steamPressureInput);
   const dpAssumedNum = toNumberOrNull(dpAssumedInput);
 
-  const valveDuNum = parseValveDu(valveDu ?? undefined);
-  const isKm225fAllowed = valveDuNum >= KM225F_MIN_DU;
-
   // 2. Валидация обязательности
   const loadKwEmpty = loadKw === null;
   const steamPressureEmpty = steamPressureNum === null;
@@ -96,23 +105,6 @@ export function ControlValveTab() {
   const enthalpyCondensateNegative = enthalpyCondensate !== null && enthalpyCondensate < 0;
   const dpNegative = dpAssumedNum !== null && dpAssumedNum < 0;
 
-  // 3. Совместимость Тип РК ↔ Ду
-  const isVfsDu15 = isVfs2r && valveDu === '15';
-  const isKm225fWithSmallDu = valveType === 'KM225F' && !isKm225fAllowed;
-  const isKm125f = valveType === 'KM125F' || valveType === 'KM125F_pneu';
-  const isKm125fWithBadDu =
-    isKm125f && !isEmptyString(valveDu) && !KM125F_ALLOWED_DUS.includes(valveDu as string);
-
-  const compatibilityError = isVfsDu15 || isKm225fWithSmallDu || isKm125fWithBadDu;
-
-  const compatibilityMessage = isVfsDu15
-    ? 'VFS-2R не выпускается с Ду 15. Выберите другой Ду или другой тип РК.'
-    : isKm225fWithSmallDu
-      ? `КМ225Ф доступен только от Ду ${KM225F_MIN_DU}. Выберите Ду ≥ ${KM225F_MIN_DU} или другой тип РК.`
-      : isKm125fWithBadDu
-        ? `Для КМ125Ф допустимы только Ду ${KM125F_ALLOWED_DUS.join(', ')}. Выберите другой Ду или другой тип РК.`
-        : undefined;
-
   const commonErrors =
     modeEmpty ||
     loadKwEmpty || loadKwNegative ||
@@ -124,10 +116,10 @@ export function ControlValveTab() {
     isManual &&
     (dpEmpty || dpNegative || duEmpty || typeEmpty || controlEmpty || voltageEmpty || suSdEmpty);
 
-  const hasInputErrors = commonErrors || manualErrors || compatibilityError;
+  const hasInputErrors = commonErrors || manualErrors;
   const canCalc = !hasInputErrors;
 
-  // 4. Опции
+  // 3. Опции
   const valveTypeOptions = [
     { value: 'KM125F', label: 'КМ125Ф Аналоговый привод' },
     { value: 'KM125F_pneu', label: 'КМ125Ф Пневматический привод' },
@@ -156,7 +148,7 @@ export function ControlValveTab() {
     { value: '300', label: '300' },
   ];
 
-  // 5. Расчёты
+  // 4. Расчёты
   const steamFlow =
     canCalc && loadKw && enthalpySteam && enthalpyCondensate
       ? calcSteamFlow(loadKw, enthalpySteam, enthalpyCondensate)
@@ -178,7 +170,7 @@ export function ControlValveTab() {
 
   const valveOverloaded = Number.isNaN(actualDeltaP);
 
-  // 6. Подбор
+  // 5. Подбор (для текущего выбранного Ду)
   const vfsActuator = isVfs2r
     ? selectActuatorByParams(
         valveDu ?? undefined,
@@ -196,7 +188,50 @@ export function ControlValveTab() {
     ? vfsActuator === null
     : otherValveCode === null;
 
-  // 7. Лейблы
+  // 5a. Табличка «возможные приводы по Ду» — для всех valveDuOptions
+  const actuatorRowsByDu: ActuatorRow[] = valveDuOptions.map(({ value: du }) => {
+    if (isVfs2r) {
+      const act = selectActuatorByParams(
+        du,
+        actuatorVoltageInput,
+        actuatorControlInput,
+        actuatorSuSdInput,
+      );
+      return {
+        du,
+        name: act?.name ?? '—',
+        code: act?.code ?? '—',
+        controlType:
+          act?.controlType
+          ?? (actuatorControlInput === 'impulse' ? 'Импульсное'
+            : actuatorControlInput === 'analog' ? 'Аналоговое'
+            : '—'),
+        voltage:
+          act?.voltage != null
+            ? `${act.voltage}В`
+            : actuatorVoltageInput
+              ? `${actuatorVoltageInput}В`
+              : '—',
+        suSd:
+          act?.suSd
+          ?? (actuatorSuSdInput === 'no_spring' ? 'Без пружины'
+            : actuatorSuSdInput === 'spring' ? 'С пружиной'
+            : '—'),
+      };
+    }
+
+    const codeSel = selectValveCode(valveType, du);
+    return {
+      du,
+      name: codeSel?.name ?? '—',
+      code: codeSel?.code ?? '—',
+      controlType: '—',
+      voltage: '—',
+      suSd: '—',
+    };
+  });
+
+  // 6. Лейблы
   const controlTypeFromInput =
     actuatorControlInput === 'impulse' ? 'Импульсное'
     : actuatorControlInput === 'analog' ? 'Аналоговое'
@@ -207,9 +242,7 @@ export function ControlValveTab() {
     : actuatorSuSdInput === 'spring' ? 'С пружиной'
     : '';
 
-  // 8. Сохранение.
-  //     ВАЖНО: при отсутствии валидного расчёта очищаем results.* (undefined),
-  //     чтобы после «Сброса данных» не оставалось нулей / старых значений.
+  // 7. Сохранение
   useEffect(() => {
     if (!canCalc) {
       setValue('results.valveSteamFlowKgH', undefined);
@@ -261,17 +294,17 @@ export function ControlValveTab() {
     setValue,
   ]);
 
-  // 9. LaTeX
+  // 8. LaTeX
   const flowFormula = steamFlow > 0
-    ? `G = \\frac{${loadKw} \\cdot 3600}{${enthalpySteam} - ${enthalpyCondensate}} \\cdot 0.99 = ${steamFlow.toFixed(2)}`
+    ? `G = \\frac{${loadKw} \\cdot 3600}{${enthalpySteam} - ${enthalpyCondensate}} \\cdot 0.99 = ${steamFlow.toFixed(6)}`
     : '';
 
   const kvFormula = kvRequired > 0
-    ? `Kv = \\frac{${steamFlow.toFixed(2)}}{12 \\cdot ${p1} \\cdot \\sqrt{1 - 5.67 \\cdot (0.42 - ${x.toFixed(4)})^2}} = ${kvRequired.toFixed(4)}`
+    ? `Kv = \\frac{${steamFlow.toFixed(6)}}{12 \\cdot ${p1} \\cdot \\sqrt{1 - 5.67 \\cdot (0.42 - ${x.toFixed(6)})^2}} = ${kvRequired.toFixed(6)}`
     : '';
 
   const dpFormula = (actualDeltaP > 0 && !valveOverloaded)
-    ? `\\Delta P = \\left(0.42 - \\sqrt{\\frac{1 - \\left(\\frac{${steamFlow.toFixed(2)}}{${kvsActual} \\cdot 12 \\cdot ${p1}}\\right)^2}{5.67}}\\right) \\cdot ${p1} = ${actualDeltaP.toFixed(4)}`
+    ? `\\Delta P = \\left(0.42 - \\sqrt{\\frac{1 - \\left(\\frac{${steamFlow.toFixed(6)}}{${kvsActual} \\cdot 12 \\cdot ${p1}}\\right)^2}{5.67}}\\right) \\cdot ${p1} = ${actualDeltaP.toFixed(6)}`
     : '';
 
   const dash = '—';
@@ -362,40 +395,13 @@ export function ControlValveTab() {
             />
 
             <SelectControl
-              name="controlValve.valveDu"
-              label="Ду РК"
-              control={control}
-              error={duEmpty || compatibilityError}
-              helperText={
-                duEmpty
-                  ? REQUIRED_MSG
-                  : compatibilityError
-                    ? compatibilityMessage
-                    : undefined
-              }
-              options={valveDuOptions}
-            />
-
-            <SelectControl
               name="controlValve.valveType"
               label="Тип РК"
               control={control}
-              error={typeEmpty || compatibilityError}
-              helperText={
-                typeEmpty
-                  ? REQUIRED_MSG
-                  : compatibilityError
-                    ? compatibilityMessage
-                    : undefined
-              }
+              error={typeEmpty}
+              helperText={typeEmpty ? REQUIRED_MSG : undefined}
               options={valveTypeOptions}
             />
-
-            {!isKm225fAllowed && !isKm225fWithSmallDu && (
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: -1, mb: 1 }}>
-                КМ225Ф доступен только от Ду {KM225F_MIN_DU}. До {KM225F_MIN_DU} закладывается КМ125Ф.
-              </Typography>
-            )}
 
             <SelectControl
               name="controlValve.actuatorControl"
@@ -440,10 +446,10 @@ export function ControlValveTab() {
               <Box>
                 <Typography variant="h6" gutterBottom>Результаты расчёта</Typography>
 
-                <ResultRow label="Расход пара" value={steamFlow.toFixed(2)} unit="кг/ч" latexFormulaWithNumbers={flowFormula} />
-                <ResultRow label="Давление после клапана" value={p2.toFixed(2)} unit="бар" latexFormulaWithNumbers={`P_2 = ${p1} - ${dp} = ${p2.toFixed(2)}`} />
-                <ResultRow label="Коэффициент x (ΔP / P1)" value={x.toFixed(4)} unit="" latexFormulaWithNumbers={`x = \\frac{${dp}}{${p1}} = ${x.toFixed(4)}`} />
-                <ResultRow label="Расчетная пропускная способность Kv" value={kvRequired.toFixed(4)} unit="м³/ч" latexFormulaWithNumbers={kvFormula} />
+                <ResultRow label="Расход пара" value={steamFlow.toFixed(6)} unit="кг/ч" latexFormulaWithNumbers={flowFormula} />
+                <ResultRow label="Давление после клапана" value={p2.toFixed(6)} unit="бар" latexFormulaWithNumbers={`P_2 = ${p1} - ${dp} = ${p2.toFixed(6)}`} />
+                <ResultRow label="Коэффициент x (ΔP / P1)" value={x.toFixed(6)} unit="" latexFormulaWithNumbers={`x = \\frac{${dp}}{${p1}} = ${x.toFixed(6)}`} />
+                <ResultRow label="Расчетная пропускная способность Kv" value={kvRequired.toFixed(6)} unit="м³/ч" latexFormulaWithNumbers={kvFormula} />
 
                 {kvsActual >= 0 && (
                   <>
@@ -456,14 +462,14 @@ export function ControlValveTab() {
 
                     {valveOverloaded ? (
                       <FormHelperText error sx={helperSx}>
-                        Расход пара ({steamFlow.toFixed(2)} кг/ч) превышает пропускную способность
+                        Расход пара ({steamFlow.toFixed(6)} кг/ч) превышает пропускную способность
                         выбранного клапана (Kvs = {kvsActual}). Перепад на РК рассчитать нельзя —
                         выберите клапан с бо́льшим Ду.
                       </FormHelperText>
                     ) : (
                       <ResultRow
                         label="Перепад давления на РК (поверочный)"
-                        value={actualDeltaP.toFixed(4)}
+                        value={actualDeltaP.toFixed(6)}
                         unit="бар"
                         latexFormulaWithNumbers={dpFormula}
                       />
@@ -471,23 +477,79 @@ export function ControlValveTab() {
                   </>
                 )}
 
-                <Box sx={{ mt: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
-                  <Typography variant="subtitle2" gutterBottom>Электропривод</Typography>
+                {/* Селект Ду РК — после перепада давления на РК */}
+                <SelectControl
+                  name="controlValve.valveDu"
+                  label="Ду РК"
+                  control={control}
+                  error={duEmpty || nothingFound}
+                  helperText={
+                    duEmpty
+                      ? REQUIRED_MSG
+                      : nothingFound
+                        ? isVfs2r
+                          ? 'Для выбранного Ду не найден электропривод в каталоге VFS-2R.'
+                          : 'Для выбранного Ду не найден код клапана в каталоге компонентов.'
+                        : undefined
+                  }
+                  options={valveDuOptions}
+                />
 
-                  {nothingFound && (
-                    <FormHelperText error sx={helperSx}>
-                      {isVfs2r
-                        ? 'Электропривод с указанными параметрами (Ду, напряжение, тип управления, SU|SD) не найден в каталоге VFS-2R.'
-                        : `Для клапана «${valveType}» с Ду ${valveDu} не найден код в каталоге компонентов.`}
-                    </FormHelperText>
-                  )}
+                {/* Табличка возможных приводов по Ду (показывается до выбора Ду) */}
+                {actuatorRowsByDu.length > 0 && (
+                  <TableContainer component={Paper} variant="outlined" sx={{ my: 3 }}>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: '#f5f5f5' }}>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Ду</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Наименование</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Код</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Тип управления</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Напряжение</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>SU|SD</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {actuatorRowsByDu.map((row) => {
+                          const isSelected = !duEmpty && valveDu === row.du;
+                          return (
+                            <TableRow
+                              key={row.du}
+                              sx={
+                                isSelected
+                                  ? {
+                                      bgcolor: '#fdecea',
+                                      '& td': { fontWeight: 'bold' },
+                                    }
+                                  : undefined
+                              }
+                            >
+                              <TableCell>{row.du}</TableCell>
+                              <TableCell>{row.name}</TableCell>
+                              <TableCell>{row.code}</TableCell>
+                              <TableCell>{row.controlType}</TableCell>
+                              <TableCell>{row.voltage}</TableCell>
+                              <TableCell>{row.suSd}</TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
 
-                  <Typography variant="body2">Наименование: {actuatorName}</Typography>
-                  <Typography variant="body2">Код: {actuatorCode}</Typography>
-                  <Typography variant="body2">Тип управления: {controlTypeLabel}</Typography>
-                  <Typography variant="body2">Напряжение: {voltageLabel}</Typography>
-                  <Typography variant="body2">SU|SD: {suSdLabel}</Typography>
-                </Box>
+                {!nothingFound && (
+                  <Box sx={{ mt: 2, p: 2, bgcolor: '#f5f5f5', borderRadius: 1 }}>
+                    <Typography variant="subtitle2" gutterBottom>Электропривод</Typography>
+
+                    <Typography variant="body2">Наименование: {actuatorName}</Typography>
+                    <Typography variant="body2">Код: {actuatorCode}</Typography>
+                    <Typography variant="body2">Тип управления: {controlTypeLabel}</Typography>
+                    <Typography variant="body2">Напряжение: {voltageLabel}</Typography>
+                    <Typography variant="body2">SU|SD: {suSdLabel}</Typography>
+                  </Box>
+                )}
+
               </Box>
             </>
           )}

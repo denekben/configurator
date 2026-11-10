@@ -205,7 +205,7 @@ export const DEFAULT_INPUT: InputData = {
   secondaryCircuit: {
     mode: 'auto',
     secondaryPreliminarySpeed: 0.8,
-    secondaryStandardDu: '40',
+    secondaryStandardDu: '50',
     editStandardDu: false,
   },
   makeUp: {

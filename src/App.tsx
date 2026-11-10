@@ -11,7 +11,6 @@ import {
 } from '@mui/material';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import * as XLSX from 'xlsx';
 
 import { InputForm } from './components/form/InputForm';
 import type { InputFormHandle } from './components/form/InputForm';
@@ -59,14 +58,10 @@ const CONDITIONAL_RESULT_FIELDS: Array<{
   path: keyof CalcResult;
   when: (input: InputData) => boolean;
 }> = [
-  // Паропровод: ручной стандартный Ду
   {
     path: 'standardDiameterMm',
     when: (input) => input.steamPipe.mode === 'manual',
   },
-
-  // Конденсатоотводчик: все ручные селекты + пропускная способность.
-  // Требуем сразу все три при manual, независимо от того, что уже выбрано.
   {
     path: 'trapDu',
     when: (input) => input.condensateTrap.mode === 'manual',
@@ -87,8 +82,6 @@ const CONDITIONAL_RESULT_FIELDS: Array<{
 
 /**
  * Собирает «служебные» пути незаполненных полей InputData.
- * results.* по умолчанию НЕ проверяются, кроме CONDITIONAL_RESULT_FIELDS
- * (и только когда соответствующий режим включён).
  */
 function collectMissing(input: InputData): string[] {
   const SKIP_KEYS = new Set(['results', 'mode', 'editStandardDu']);
@@ -119,7 +112,6 @@ function collectMissing(input: InputData): string[] {
     walk(v, k);
   }
 
-  // Условные поля из results.* (только когда пользователь их реально «включает»)
   for (const { path, when } of CONDITIONAL_RESULT_FIELDS) {
     if (!when(input)) continue;
     const value = input.results?.[path];
@@ -148,24 +140,7 @@ function App() {
 
   const generateFile = () => {
     try {
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.aoa_to_sheet([[]]);
-      XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-
-      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-      const blob = new Blob([wbout], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      });
-
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'documentation.xlsx';
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      downloadSpecSkeleton('Спецификация_скелет.xlsx');
     } catch (err) {
       console.error('Не удалось сгенерировать документацию:', err);
       alert('Ошибка при генерации файла. Подробности в консоли.');
@@ -173,21 +148,7 @@ function App() {
   };
 
   const handleGenerateDoc = () => {
-    const data = formRef.current?.getValues();
-    if (!data) {
-      // Формы нет на экране (мы на экране результатов) — генерируем сразу.
-      generateFile();
-      return;
-    }
-
-    const missingPaths = collectMissing(data);
-    if (missingPaths.length > 0) {
-      setMissing(missingPaths);
-      setDialogOpen(true);
-      return;
-    }
-
-    generateFile();
+    
   };
 
   const handleGenerateAnyway = () => {
@@ -203,7 +164,7 @@ function App() {
             Конфигуратор паровых блоков
           </Typography>
 
-          <Tooltip title="Скачать documentation.xlsx">
+          <Tooltip title="Скачать Спецификация_скелет.xlsx">
             <span>
               <Button
                 color="inherit"

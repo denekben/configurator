@@ -29,6 +29,17 @@ export const TAB_FIELDS: Record<string, string[]> = {
     'system.systemVolumeL',
     'system.designPressureBar',
   ],
+  scheme: [
+    'scheme.hasSeparator',
+    'scheme.hasAccountingPrimary',
+    'scheme.trapReserve',
+    'scheme.hxReserve',
+    'scheme.pumpReserve',
+    'scheme.hasAccountingSecondary',
+    'scheme.makeupConfig',
+    'scheme.hasExpansionTank',
+    'scheme.aupdConfig',
+  ],
 
   'steam-pipe': [
     'steamPipe.mode',
