@@ -135,16 +135,16 @@ export function MakeUpTab() {
 
   const flowFormula = flow > 0
     ? isVolumeBased
-      ? `G = \\frac{${systemVolumeL}}{5000} = ${flow.toFixed(4)}`
-      : `G = \\frac{${loadKw} \\cdot ${volumeCoef}}{5 \\cdot 1000} = ${flow.toFixed(4)}`
+      ? `G = \\frac{${systemVolumeL}}{5000} = ${flow.toFixed(6)}`
+      : `G = \\frac{${loadKw} \\cdot ${volumeCoef}}{5 \\cdot 1000} = ${flow.toFixed(6)}`
     : '';
 
   const estimatedDuFormula = estimatedDu > 0
-    ? `d' = 18.8 \\cdot \\sqrt{\\frac{${flow.toFixed(4)}}{${preliminarySpeed}}} = ${estimatedDu.toFixed(2)}`
+    ? `d' = 18.8 \\cdot \\sqrt{\\frac{${flow.toFixed(6)}}{${preliminarySpeed}}} = ${estimatedDu.toFixed(6)}`
     : '';
 
   const actualSpeedFormula = actualSpeed > 0
-    ? `v = ${flow.toFixed(4)} \\cdot \\left(\\frac{18.8}{${standardDuNum}}\\right)^2 = ${actualSpeed.toFixed(4)}`
+    ? `v = ${flow.toFixed(6)} \\cdot \\left(\\frac{18.8}{${standardDuNum}}\\right)^2 = ${actualSpeed.toFixed(6)}`
     : '';
 
   const buildHelper = (empty: boolean, negative: boolean): string | undefined =>
@@ -278,19 +278,19 @@ export function MakeUpTab() {
                 <Typography variant="h6" gutterBottom>Результаты расчёта</Typography>
                 <ResultRow
                   label="Расход"
-                  value={flow.toFixed(4)}
+                  value={flow.toFixed(6)}
                   unit="м³/ч"
                   latexFormulaWithNumbers={flowFormula}
                 />
                 <ResultRow
                   label="Ориентировочный Ду"
-                  value={estimatedDu.toFixed(2)}
+                  value={estimatedDu.toFixed(6)}
                   unit="мм"
                   latexFormulaWithNumbers={estimatedDuFormula}
                 />
                 <ResultRow
                   label="Скорость воды"
-                  value={actualSpeed.toFixed(4)}
+                  value={actualSpeed.toFixed(6)}
                   unit="м/с"
                   latexFormulaWithNumbers={actualSpeedFormula}
                 />

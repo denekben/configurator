@@ -15,7 +15,7 @@ import {
   humanizePath,
   getSectionOf,
   humanizeSection,
-} from '../core/fieldLabels';
+} from '../core/fieldMeta';
 
 interface Props {
   open: boolean;
@@ -42,22 +42,24 @@ export function MissingFieldsDialog({
 
     for (const path of items) {
       const section = getSectionOf(path);
-      if (!map.has(section)) {
-        map.set(section, {
+      const isResultOnly = path.startsWith('results.');
+      const groupKey = `${section}::${isResultOnly ? 'result' : 'input'}`;
+
+      if (!map.has(groupKey)) {
+        map.set(groupKey, {
           section,
           title: humanizeSection(section),
-          isResultOnly: true,
+          isResultOnly,
           fields: [],
         });
       }
-      const group = map.get(section)!;
-      group.fields.push(path);
-      if (!path.startsWith('results.')) {
-        group.isResultOnly = false;
-      }
+      map.get(groupKey)!.fields.push(path);
     }
 
-    return Array.from(map.values());
+    return Array.from(map.values()).sort((a, b) => {
+      if (a.section !== b.section) return a.section.localeCompare(b.section);
+      return Number(a.isResultOnly) - Number(b.isResultOnly);
+    });
   }, [items]);
 
   return (
@@ -70,7 +72,7 @@ export function MissingFieldsDialog({
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {groups.map((group) => (
-            <Box key={group.section}>
+            <Box key={`${group.section}-${group.isResultOnly ? 'r' : 'i'}`}>
               <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
                 {group.title}
                 {group.isResultOnly ? '. Результаты расчёта' : ''}:

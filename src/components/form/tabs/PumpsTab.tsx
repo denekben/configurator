@@ -123,11 +123,11 @@ export function PumpsTab() {
   }, [canCalc, pumpFlow, pumpHead, setValue]);
 
   const pumpFlowFormula = pumpFlow > 0
-    ? `G_{нас} = \\frac{0.86 \\cdot ${loadKw}}{${supplyTempC} - ${returnTempC}} \\cdot \\frac{1}{${pumpCountNum}} = ${pumpFlow.toFixed(4)}`
+    ? `G_{нас} = \\frac{0.86 \\cdot ${loadKw}}{${supplyTempC} - ${returnTempC}} \\cdot \\frac{1}{${pumpCountNum}} = ${pumpFlow.toFixed(6)}`
     : '';
 
   const pumpHeadFormula = pumpHead > 0
-    ? `H = ${hydraulicLossM ?? 0} + ${hxLossM ?? 0} + ${reserveM ?? 0} + ${extraLossM ?? 0} = ${pumpHead.toFixed(3)}`
+    ? `H = ${hydraulicLossM ?? 0} + ${hxLossM ?? 0} + ${reserveM ?? 0} + ${extraLossM ?? 0} = ${pumpHead.toFixed(6)}`
     : '';
 
   const buildHelper = (empty: boolean, negative: boolean): string | undefined =>
@@ -237,13 +237,13 @@ export function PumpsTab() {
 
                 <ResultRow
                   label="Расход насоса"
-                  value={pumpFlow.toFixed(4)}
+                  value={pumpFlow.toFixed(6)}
                   unit="м³/ч"
                   latexFormulaWithNumbers={pumpFlowFormula}
                 />
                 <ResultRow
                   label="Напор насоса"
-                  value={pumpHead.toFixed(3)}
+                  value={pumpHead.toFixed(6)}
                   unit="м.вод.ст."
                   latexFormulaWithNumbers={pumpHeadFormula}
                 />

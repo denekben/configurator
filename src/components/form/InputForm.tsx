@@ -32,7 +32,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { DEFAULT_INPUT, EMPTY_INPUT } from '../../core/defaults';
 import type { InputData, CalcResult } from '../../core/types';
 import { calculate } from '../../core/calc';
-import { TAB_FIELDS, getEmptyValueForPath } from '../../core/tabFieldMap';
+import { TAB_FIELDS, getEmptyValueForPath } from '../../core/fieldMeta';
 import { GlobalEditContext } from './GlobalEditContext';
 
 import { GlobalDataTab } from './tabs/GlobalDataTab';
@@ -91,7 +91,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    title: 'Документ',
+    title: 'Документация',
     items: [
       { key: 'design', label: 'Оформление', element: <DesignTab /> },
     ],
@@ -162,7 +162,6 @@ export const InputForm = forwardRef<InputFormHandle, Props>(
       control,
     } = methods;
 
-    // Отдаём наружу актуальные значения формы.
     useImperativeHandle(
       ref,
       () => ({
@@ -234,8 +233,6 @@ export const InputForm = forwardRef<InputFormHandle, Props>(
       }
     };
 
-    // onSubmit не нужен: расчёт вызывается через onCalculated снаружи,
-    // а актуальные значения отдаются через ref.getValues().
     void calculate;
     void onCalculated;
 

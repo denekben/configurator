@@ -133,15 +133,15 @@ export function SecondaryCircuitTab() {
 
   // LaTeX
   const flowFormula = flow > 0
-    ? `G = \\frac{0.86 \\cdot ${loadKw}}{${supplyTempC} - ${returnTempC}} = ${flow.toFixed(3)}`
+    ? `G = \\frac{0.86 \\cdot ${loadKw}}{${supplyTempC} - ${returnTempC}} = ${flow.toFixed(6)}`
     : '';
 
   const estimatedDuFormula = estimatedDu > 0
-    ? `d' = 18.8 \\cdot \\sqrt{\\frac{${flow.toFixed(3)}}{${preliminarySpeed}}} = ${estimatedDu.toFixed(2)}`
+    ? `d' = 18.8 \\cdot \\sqrt{\\frac{${flow.toFixed(6)}}{${preliminarySpeed}}} = ${estimatedDu.toFixed(6)}`
     : '';
 
   const actualSpeedFormula = actualSpeed > 0
-    ? `v = ${flow.toFixed(3)} \\cdot \\left(\\frac{18.8}{${standardDuNum}}\\right)^2 = ${actualSpeed.toFixed(4)}`
+    ? `v = ${flow.toFixed(6)} \\cdot \\left(\\frac{18.8}{${standardDuNum}}\\right)^2 = ${actualSpeed.toFixed(6)}`
     : '';
 
   // Хелпер приоритета: пусто → отрицательное
@@ -273,19 +273,19 @@ export function SecondaryCircuitTab() {
 
                 <ResultRow
                   label="Расход"
-                  value={flow.toFixed(3)}
+                  value={flow.toFixed(6)}
                   unit="м³/ч"
                   latexFormulaWithNumbers={flowFormula}
                 />
                 <ResultRow
                   label="Ориентировочный Ду"
-                  value={estimatedDu.toFixed(2)}
+                  value={estimatedDu.toFixed(6)}
                   unit="мм"
                   latexFormulaWithNumbers={estimatedDuFormula}
                 />
                 <ResultRow
                   label="Скорость воды"
-                  value={actualSpeed.toFixed(4)}
+                  value={actualSpeed.toFixed(6)}
                   unit="м/с"
                   latexFormulaWithNumbers={actualSpeedFormula}
                 />

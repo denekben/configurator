@@ -1,4 +1,4 @@
-// src/app/App.tsx
+// src/App.tsx
 
 import { useState, useEffect, useRef } from 'react';
 import {
@@ -16,13 +16,15 @@ import { InputForm } from './components/form/InputForm';
 import type { InputFormHandle } from './components/form/InputForm';
 import { MissingFieldsDialog } from './components/MissingFieldsDialog';
 import { theme } from './theme';
-import { collectMissing } from './core/collectMissing';
-import type { CalcResult } from './core/types';
+import { collectMissing } from './core/fieldMeta';
+import { generateDoc } from './core/docx/generateDoc';
+import type { CalcResult, InputData } from './core/types';
 
 function App() {
   const [result, setResult] = useState<CalcResult | null>(null);
   const [missing, setMissing] = useState<string[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   const formRef = useRef<InputFormHandle>(null);
 
@@ -34,20 +36,26 @@ function App() {
     }
   }, [result]);
 
-  const generateFile = () => {
+  const generateFile = async (data: InputData | null) => {
+    if (!data) {
+      alert('Нет данных формы для генерации.');
+      return;
+    }
+    setGenerating(true);
     try {
-      // TODO: здесь будет реальная генерация xlsx
-      alert('Генерация документации (заглушка). См. консоль.');
+      await generateDoc(data);
     } catch (err) {
       console.error('Не удалось сгенерировать документацию:', err);
       alert('Ошибка при генерации файла. Подробности в консоли.');
+    } finally {
+      setGenerating(false);
     }
   };
 
   const handleGenerateDoc = () => {
     const data = formRef.current?.getValues();
     if (!data) {
-      generateFile();
+      void generateFile(null);
       return;
     }
 
@@ -58,12 +66,13 @@ function App() {
       return;
     }
 
-    generateFile();
+    void generateFile(data);
   };
 
   const handleGenerateAnyway = () => {
     setDialogOpen(false);
-    generateFile();
+    const data = formRef.current?.getValues() ?? null;
+    void generateFile(data);
   };
 
   return (
@@ -74,13 +83,14 @@ function App() {
             Конфигуратор паровых блоков
           </Typography>
 
-          <Tooltip title="Скачать Спецификация_скелет.xlsx">
+          <Tooltip title="Скачать Спецификация.docx">
             <span>
               <Button
                 color="inherit"
                 variant="outlined"
                 startIcon={<DescriptionOutlinedIcon />}
                 onClick={handleGenerateDoc}
+                disabled={generating}
                 sx={{
                   color: '#fff',
                   borderColor: 'rgba(255,255,255,0.85)',
@@ -90,7 +100,9 @@ function App() {
                   },
                 }}
               >
-                Сгенерировать документацию
+                {generating
+                  ? 'Генерация...'
+                  : 'Сгенерировать документацию'}
               </Button>
             </span>
           </Tooltip>

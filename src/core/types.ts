@@ -283,3 +283,19 @@ export interface CalcResult {
   pumps?: PumpsResult;
   makeUp?: MakeUpResult;
 }
+
+// ==========================================
+// СПЕЦИФИКАЦИЯ (SpecComponent)
+// ==========================================
+
+export interface SpecComponent {
+  name: string;
+  qty: number;
+  code?: string;
+  vendor?: string;
+  type?: string;
+  unit?: string;
+  [extra: string]: string | number | undefined;
+}
+
+export type SpecData = Record<string, SpecComponent>;
